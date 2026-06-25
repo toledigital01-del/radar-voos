@@ -1,0 +1,16 @@
+[build]
+builder = "NIXPACKS"
+
+[[services]]
+name = "dashboard"
+startCommand = "python dashboard.py"
+[services.variables]
+PORT = "8000"
+
+[[services]]
+name = "monitor"
+startCommand = "python main.py"
+
+[deploy]
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5
