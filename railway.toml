@@ -1,16 +1,7 @@
 [build]
 builder = "NIXPACKS"
 
-[[services]]
-name = "dashboard"
-startCommand = "python dashboard.py"
-[services.variables]
-PORT = "8000"
-
-[[services]]
-name = "monitor"
-startCommand = "python main.py"
-
 [deploy]
+startCommand = "uvicorn dashboard:app --host 0.0.0.0 --port $PORT"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5
