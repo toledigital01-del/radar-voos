@@ -7,7 +7,12 @@ from datetime import datetime
 from config import DATABASE_URL
 
 Base = declarative_base()
-engine = create_engine(DATABASE_URL)
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    pool_recycle=300,
+    connect_args={"connect_timeout": 10} if DATABASE_URL.startswith("postgresql") else {},
+)
 Session = sessionmaker(bind=engine)
 
 

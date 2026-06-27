@@ -9,8 +9,9 @@ import truststore
 truststore.inject_into_ssl()
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.exception_handlers import http_exception_handler
 from pydantic import BaseModel
 from sqlalchemy import func, desc
 from datetime import datetime, timedelta
@@ -21,6 +22,22 @@ from src.database.models import Session, HistoricoPreco, Alerta, Assinante
 from config import USER_CONFIG_PATH, _DEFAULTS, CITY_GROUPS
 
 app = FastAPI(title="Radar Voos Dashboard")
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(status_code=500, content={"error": str(exc)})
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+@app.on_event("startup")
+def startup():
+    from src.database.models import criar_tabelas
+    try:
+        criar_tabelas()
+    except Exception as e:
+        print(f"DB startup warning: {e}")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Banco de aeroportos — fonte única de verdade para HTML e JS
