@@ -1088,7 +1088,9 @@ def toggle_assinante(id: int):
 
 
 if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 8000))
     total = sum(len(v) for v in AIRPORTS_BY_REGION.values())
     print(f"Aeroportos cadastrados: {total} | Grupos: {len(ALL_GROUPS)}")
-    print("Dashboard disponível em http://localhost:8000")
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=False)
+    print(f"Dashboard disponível em http://0.0.0.0:{port}")
+    uvicorn.run(app, host="0.0.0.0", port=port, reload=False)
