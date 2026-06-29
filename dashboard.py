@@ -901,6 +901,11 @@ setInterval(loadDashboard, 30000);
 </html>"""
 
 def _build_html() -> str:
+    import os as _os
+    _p = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "static", "index.html")
+    if _os.path.exists(_p):
+        with open(_p, encoding="utf-8") as _fh:
+            return _fh.read()
     return (
         _HTML_TEMPLATE
         .replace("__DATALIST__", _gen_datalist())
