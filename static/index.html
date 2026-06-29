@@ -434,6 +434,45 @@ tbody tr.sel .icon-btn { border-color: var(--indigo); color: var(--indigo); back
   header { padding: 0 18px; }
   .header-center { display: none; }
 }
+
+/* ─── CONFIG ROUTE ITEMS ─── */
+.cfg-rota-item {
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(0,0,0,0.25); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px; gap: 10px;
+}
+.cfg-rota-text { font-size: 13px; font-weight: 700; color: var(--text); }
+.btn-rm {
+  background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);
+  color: var(--red); border-radius: 6px; padding: 5px 10px;
+  cursor: pointer; font-size: 11px; font-weight: 700;
+  transition: all 0.15s; font-family: inherit; white-space: nowrap;
+}
+.btn-rm:hover { background: rgba(239,68,68,0.18); }
+
+/* ─── SUB LIST ITEMS ─── */
+.sub-list-item {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(0,0,0,0.2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 13px 16px; transition: opacity 0.2s;
+}
+.sub-list-item.paused { opacity: 0.42; }
+.sub-icon-lg { font-size: 22px; flex-shrink: 0; }
+.sub-info { flex: 1; min-width: 0; }
+.sub-name-row { font-size: 13px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sub-contact { font-size: 11.5px; color: var(--muted); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.canal-pill { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 10.5px; font-weight: 600; }
+.cp-telegram { background: rgba(34,211,238,0.1); color: var(--cyan); border: 1px solid rgba(34,211,238,0.2); }
+.cp-whatsapp { background: rgba(16,185,129,0.1); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+.cp-email { background: rgba(245,158,11,0.1); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
+.sub-acts { display: flex; gap: 6px; flex-shrink: 0; }
+.btn-toggle {
+  background: none; border: 1px solid var(--border); color: var(--muted);
+  border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: 11px; font-weight: 600;
+  transition: all 0.15s; font-family: inherit; white-space: nowrap;
+}
+.btn-toggle.on { border-color: rgba(16,185,129,0.4); color: var(--green); background: rgba(16,185,129,0.08); }
+.btn-toggle:hover { border-color: var(--indigo); color: var(--indigo); }
 </style>
 </head>
 <body>
@@ -610,31 +649,179 @@ tbody tr.sel .icon-btn { border-color: var(--indigo); color: var(--indigo); back
 
 <!-- ── CONFIG TAB ── -->
 <div id="tab-config" class="container" style="display:none">
-  <div class="glass-card" style="max-width:680px;margin:0 auto;">
-    <div class="card-header">
-      <div class="card-title">
-        <div class="card-icon" style="background:rgba(99,102,241,0.12)">⚙️</div>
-        Configurações do Sistema
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+    <!-- Rotas -->
+    <div class="glass-card">
+      <div class="card-header">
+        <div class="card-title"><div class="card-icon" style="background:rgba(99,102,241,0.12)">🗺️</div>Rotas Monitoradas</div>
+        <span class="chip" id="cfg-rotas-chip">0 rotas</span>
+      </div>
+      <div style="padding:20px 22px;">
+        <div style="display:flex;gap:8px;margin-bottom:14px;align-items:flex-end;">
+          <div style="flex:1;">
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Origem</div>
+            <input id="cfg-origem" list="airports-cfg" placeholder="GRU, SAO..." autocomplete="off" oninput="this.value=this.value.toUpperCase()" style="width:100%;background:#0a0a22;border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;font-family:inherit;">
+          </div>
+          <div style="color:var(--muted);padding-bottom:4px;font-size:16px;">→</div>
+          <div style="flex:1;">
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Destino</div>
+            <input id="cfg-destino" list="airports-cfg" placeholder="CDG, PAR..." autocomplete="off" oninput="this.value=this.value.toUpperCase()" style="width:100%;background:#0a0a22;border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;font-family:inherit;">
+          </div>
+          <button onclick="cfgAddRota()" style="background:var(--indigo);color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">+ Add</button>
+        </div>
+        <datalist id="airports-cfg">
+          <option value="GRU">São Paulo / Guarulhos</option><option value="CGH">São Paulo / Congonhas</option>
+          <option value="GIG">Rio / Galeão</option><option value="SDU">Rio / Santos Dumont</option>
+          <option value="BSB">Brasília</option><option value="SSA">Salvador</option>
+          <option value="REC">Recife</option><option value="FOR">Fortaleza</option>
+          <option value="POA">Porto Alegre</option><option value="CWB">Curitiba</option>
+          <option value="BEL">Belém</option><option value="MAO">Manaus</option>
+          <option value="CDG">Paris / CDG</option><option value="LHR">Londres / Heathrow</option>
+          <option value="LIS">Lisboa</option><option value="OPO">Porto</option>
+          <option value="MAD">Madri</option><option value="BCN">Barcelona</option>
+          <option value="MIA">Miami</option><option value="JFK">Nova York / JFK</option>
+          <option value="ORD">Chicago / O'Hare</option><option value="LAX">Los Angeles</option>
+          <option value="EZE">Buenos Aires / Ezeiza</option><option value="SCL">Santiago</option>
+          <option value="DXB">Dubai</option><option value="NRT">Tóquio / Narita</option>
+        </datalist>
+        <div id="cfg-rotas-list" style="display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto;"></div>
       </div>
     </div>
-    <div style="padding:32px 28px;">
-      <div class="empty"><div class="empty-icon">🚧</div><p>Configurações avançadas<br>em breve.</p></div>
+
+    <!-- Coluna direita -->
+    <div style="display:flex;flex-direction:column;gap:20px;">
+
+      <!-- Parâmetros -->
+      <div class="glass-card">
+        <div class="card-header">
+          <div class="card-title"><div class="card-icon" style="background:rgba(139,92,246,0.12)">🎛️</div>Parâmetros de Busca</div>
+        </div>
+        <div style="padding:20px 22px;display:flex;flex-direction:column;gap:18px;">
+          <div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:500;">Dias de antecedência monitorados</div>
+            <div id="cfg-dias" style="display:flex;flex-wrap:wrap;gap:8px;">
+              <label style="display:flex;align-items:center;gap:6px;background:#0a0a22;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" value="7" style="accent-color:var(--indigo)"> 7d</label>
+              <label style="display:flex;align-items:center;gap:6px;background:#0a0a22;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" value="14" style="accent-color:var(--indigo)"> 14d</label>
+              <label style="display:flex;align-items:center;gap:6px;background:#0a0a22;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" value="30" style="accent-color:var(--indigo)"> 30d</label>
+              <label style="display:flex;align-items:center;gap:6px;background:#0a0a22;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" value="60" style="accent-color:var(--indigo)"> 60d</label>
+              <label style="display:flex;align-items:center;gap:6px;background:#0a0a22;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" value="90" style="accent-color:var(--indigo)"> 90d</label>
+              <label style="display:flex;align-items:center;gap:6px;background:#0a0a22;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" value="120" style="accent-color:var(--indigo)"> 120d</label>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:500;">Desconto mínimo para alerta</div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <input type="range" id="cfg-threshold" min="5" max="60" step="5" value="30" oninput="$('cfg-threshold-val').textContent=this.value+'%'" style="flex:1;accent-color:var(--indigo);">
+              <span id="cfg-threshold-val" style="font-size:20px;font-weight:800;color:var(--indigo);min-width:48px;text-align:right;">30%</span>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px;">Alerta quando preço cair X% abaixo da média histórica</div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:500;">Intervalo entre ciclos de busca</div>
+            <select id="cfg-intervalo" style="width:100%;background:#0a0a22;border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;font-family:inherit;">
+              <option value="1">A cada 1 hora</option>
+              <option value="2">A cada 2 horas</option>
+              <option value="4">A cada 4 horas</option>
+              <option value="6">A cada 6 horas</option>
+              <option value="12">A cada 12 horas</option>
+              <option value="24">Uma vez por dia</option>
+            </select>
+          </div>
+          <button onclick="cfgSaveSettings()" style="width:100%;background:var(--green);color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">💾 Salvar Configurações</button>
+        </div>
+      </div>
+
+      <!-- Canais de alerta -->
+      <div class="glass-card">
+        <div class="card-header">
+          <div class="card-title"><div class="card-icon" style="background:rgba(34,211,238,0.1)">📡</div>Canais de Alerta</div>
+        </div>
+        <div style="padding:14px 20px;display:flex;flex-direction:column;gap:10px;">
+          <div style="background:#0a0a22;border:1px solid rgba(16,185,129,0.25);border-radius:10px;padding:14px 16px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:22px;">📱</span>
+                <div><div style="font-size:13px;font-weight:700;color:var(--text);">Telegram</div><div style="font-size:11px;color:var(--muted);">@radarvoos_alertas_bot</div></div>
+              </div>
+              <span style="background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.25);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;">✓ Ativo</span>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">Canal: <span style="color:var(--text2)">Radar Voos Alertas</span> · ID: <span style="color:var(--text2)">-1003930312404</span></div>
+          </div>
+          <div style="background:#0a0a22;border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:22px;">💬</span>
+                <div><div style="font-size:13px;font-weight:700;color:var(--text);">WhatsApp</div><div style="font-size:11px;color:var(--muted);">via Twilio</div></div>
+              </div>
+              <span style="background:rgba(245,158,11,0.1);color:var(--amber);border:1px solid rgba(245,158,11,0.2);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;">Configurar</span>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">Adicione no Railway: <span style="color:var(--indigo);">TWILIO_ACCOUNT_SID · TWILIO_AUTH_TOKEN · TWILIO_WHATSAPP_FROM</span></div>
+          </div>
+          <div style="background:#0a0a22;border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:22px;">📧</span>
+                <div><div style="font-size:13px;font-weight:700;color:var(--text);">Email</div><div style="font-size:11px;color:var(--muted);">via SendGrid</div></div>
+              </div>
+              <span style="background:rgba(245,158,11,0.1);color:var(--amber);border:1px solid rgba(245,158,11,0.2);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;">Configurar</span>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">Adicione no Railway: <span style="color:var(--indigo);">SENDGRID_API_KEY · EMAIL_FROM</span></div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
 
 <!-- ── SUBS TAB ── -->
 <div id="tab-subs" class="container" style="display:none">
-  <div class="glass-card" style="max-width:680px;margin:0 auto;">
-    <div class="card-header">
-      <div class="card-title">
-        <div class="card-icon" style="background:rgba(16,185,129,0.1)">👥</div>
-        Assinantes
+  <div style="display:grid;grid-template-columns:380px 1fr;gap:20px;">
+
+    <!-- Formulário novo assinante -->
+    <div class="glass-card" style="align-self:start;">
+      <div class="card-header">
+        <div class="card-title"><div class="card-icon" style="background:rgba(99,102,241,0.12)">➕</div>Novo Assinante</div>
+      </div>
+      <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Nome / Identificação</div>
+          <input id="sub-nome" placeholder="Ex: Canal de Promoções de Voos" style="width:100%;background:#0a0a22;border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;font-family:inherit;">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Canal de envio</div>
+          <select id="sub-canal" onchange="updateSubHint()" style="width:100%;background:#0a0a22;border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;font-family:inherit;">
+            <option value="telegram">📱 Telegram</option>
+            <option value="whatsapp">💬 WhatsApp</option>
+            <option value="email">📧 Email</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Contato</div>
+          <input id="sub-contato" placeholder="@canal_telegram ou -1001234..." style="width:100%;background:#0a0a22;border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;font-family:inherit;">
+          <div id="sub-hint" style="font-size:11px;color:var(--indigo);margin-top:5px;">Chat ID numérico ou @nome_do_canal</div>
+        </div>
+        <button onclick="subAdd()" style="width:100%;background:var(--indigo);color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">+ Adicionar Assinante</button>
+        <div style="border-top:1px solid var(--divider);padding-top:12px;font-size:11px;color:var(--muted);line-height:2;">
+          <strong style="color:var(--text2);">📱 Telegram:</strong> @canal ou chat_id numérico<br>
+          <strong style="color:var(--text2);">💬 WhatsApp:</strong> +5511999998888<br>
+          <strong style="color:var(--text2);">📧 Email:</strong> usuario@dominio.com
+        </div>
       </div>
     </div>
-    <div style="padding:32px 28px;">
-      <div class="empty"><div class="empty-icon">👤</div><p>Gerenciamento de assinantes<br>em breve.</p></div>
+
+    <!-- Lista de assinantes -->
+    <div class="glass-card">
+      <div class="card-header">
+        <div class="card-title"><div class="card-icon" style="background:rgba(16,185,129,0.1)">👥</div>Assinantes Cadastrados</div>
+        <span class="chip green" id="subs-chip">0</span>
+      </div>
+      <div id="subs-list">
+        <div class="empty"><div class="empty-icon">👤</div><p>Nenhum assinante ainda.<br>Adicione alguém para receber os alertas.</p></div>
+      </div>
     </div>
+
   </div>
 </div>
 
@@ -700,6 +887,8 @@ function switchTab(name, btn) {
   });
   document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  if (name === 'config') loadConfig();
+  if (name === 'subs') loadSubs();
 }
 
 // ── SPARKLINE ─────────────────────────────────────────────────────────────────
@@ -920,6 +1109,177 @@ async function bootstrap(){
 
 bootstrap();
 setInterval(bootstrap,5*60*1000);
+
+// ── CONFIG TAB ────────────────────────────────────────────────────────────────
+async function loadConfig() {
+  try {
+    const cfg = await fetch('/api/config').then(r => r.json());
+    renderCfgRotas(cfg.rotas || []);
+    document.querySelectorAll('#cfg-dias input[type=checkbox]').forEach(cb => {
+      cb.checked = (cfg.dias_antecedencia || []).includes(parseInt(cb.value));
+    });
+    const th = Math.round((cfg.threshold_desconto || 0.3) * 100);
+    $('cfg-threshold').value = th;
+    $('cfg-threshold-val').textContent = th + '%';
+    $('cfg-intervalo').value = cfg.intervalo_horas || 1;
+  } catch(e) {
+    showToast('⚠️ Erro ao carregar configurações');
+  }
+}
+
+function renderCfgRotas(rotas) {
+  $('cfg-rotas-chip').textContent = rotas.length + ' rota' + (rotas.length !== 1 ? 's' : '');
+  const el = $('cfg-rotas-list');
+  if (!rotas.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🗺️</div><p>Nenhuma rota cadastrada.</p></div>';
+    return;
+  }
+  el.innerHTML = rotas.map((r, i) => `
+    <div class="cfg-rota-item">
+      <div class="cfg-rota-text">✈️ ${r.origem} → ${r.destino}</div>
+      <button class="btn-rm" onclick="cfgRemoveRota(${i})">✕ Remover</button>
+    </div>`).join('');
+}
+
+async function cfgAddRota() {
+  const o = $('cfg-origem').value.trim().toUpperCase();
+  const d = $('cfg-destino').value.trim().toUpperCase();
+  if (o.length < 3 || d.length < 3) { showToast('⚠️ Insira códigos IATA válidos (3 letras)'); return; }
+  if (o === d) { showToast('⚠️ Origem e destino não podem ser iguais'); return; }
+  try {
+    const res = await fetch('/api/config/rotas', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({origem: o, destino: d}),
+    });
+    if (res.ok) {
+      renderCfgRotas((await res.json()).rotas);
+      $('cfg-origem').value = '';
+      $('cfg-destino').value = '';
+      showToast('✅ Rota ' + o + ' → ' + d + ' adicionada!');
+    } else {
+      const err = await res.json();
+      showToast('⚠️ ' + (err.detail || 'Erro ao adicionar rota'));
+    }
+  } catch(e) { showToast('⚠️ Sem conexão com a API'); }
+}
+
+async function cfgRemoveRota(idx) {
+  try {
+    const res = await fetch('/api/config/rotas/' + idx, {method: 'DELETE'});
+    if (res.ok) { renderCfgRotas((await res.json()).rotas); showToast('🗑️ Rota removida'); }
+    else showToast('⚠️ Erro ao remover rota');
+  } catch(e) { showToast('⚠️ Sem conexão com a API'); }
+}
+
+async function cfgSaveSettings() {
+  const dias = Array.from(document.querySelectorAll('#cfg-dias input[type=checkbox]:checked'))
+    .map(cb => parseInt(cb.value)).sort((a, b) => a - b);
+  if (!dias.length) { showToast('⚠️ Selecione ao menos um período'); return; }
+  try {
+    const res = await fetch('/api/config/settings', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        dias_antecedencia: dias,
+        threshold_desconto: parseInt($('cfg-threshold').value) / 100,
+        intervalo_horas: parseInt($('cfg-intervalo').value),
+      }),
+    });
+    if (res.ok) showToast('✅ Configurações salvas!');
+    else showToast('⚠️ Erro ao salvar configurações');
+  } catch(e) { showToast('⚠️ Sem conexão com a API'); }
+}
+
+// ── SUBS TAB ──────────────────────────────────────────────────────────────────
+const _CANAL_HINTS = {
+  telegram: 'Chat ID numérico (-1001234...) ou @nome_do_canal',
+  whatsapp: 'Número com DDI: +5511999998888',
+  email: 'Endereço de email: usuario@dominio.com',
+};
+const _CANAL_PH = {
+  telegram: '@canal_telegram ou -1001234567890',
+  whatsapp: '+5511999998888',
+  email: 'usuario@dominio.com',
+};
+const _CANAL_ICO = {telegram: '📱', whatsapp: '💬', email: '📧'};
+const _CANAL_CLS = {telegram: 'cp-telegram', whatsapp: 'cp-whatsapp', email: 'cp-email'};
+
+function updateSubHint() {
+  const canal = $('sub-canal').value;
+  $('sub-contato').placeholder = _CANAL_PH[canal];
+  $('sub-hint').textContent = _CANAL_HINTS[canal];
+}
+
+async function loadSubs() {
+  try {
+    const list = await fetch('/api/assinantes').then(r => r.json());
+    renderSubs(list);
+  } catch(e) { showToast('⚠️ Erro ao carregar assinantes'); }
+}
+
+function renderSubs(list) {
+  $('subs-chip').textContent = list.length;
+  const el = $('subs-list');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">👤</div><p>Nenhum assinante ainda.<br>Adicione alguém para receber os alertas.</p></div>';
+    return;
+  }
+  el.innerHTML = '<div style="display:flex;flex-direction:column;gap:8px;padding:12px 16px;">' +
+    list.map(a => `
+      <div class="sub-list-item ${a.ativo ? '' : 'paused'}">
+        <span class="sub-icon-lg">${_CANAL_ICO[a.canal] || '📩'}</span>
+        <div class="sub-info">
+          <div class="sub-name-row">${a.nome}
+            <span class="canal-pill ${_CANAL_CLS[a.canal] || ''}">${a.canal}</span>
+          </div>
+          <div class="sub-contact">${a.contato}</div>
+        </div>
+        <div class="sub-acts">
+          <button class="btn-toggle ${a.ativo ? 'on' : ''}" onclick="subToggle(${a.id})">
+            ${a.ativo ? '✅ Ativo' : '⏸ Pausado'}
+          </button>
+          <button class="btn-rm" onclick="subDelete(${a.id})">✕</button>
+        </div>
+      </div>`).join('') + '</div>';
+}
+
+async function subAdd() {
+  const nome = $('sub-nome').value.trim();
+  const canal = $('sub-canal').value;
+  const contato = $('sub-contato').value.trim();
+  if (!nome || !contato) { showToast('⚠️ Preencha nome e contato'); return; }
+  try {
+    const res = await fetch('/api/assinantes', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({nome, canal, contato}),
+    });
+    if (res.ok) {
+      $('sub-nome').value = '';
+      $('sub-contato').value = '';
+      await loadSubs();
+      showToast(_CANAL_ICO[canal] + ' ' + nome + ' adicionado!');
+    } else {
+      const err = await res.json();
+      showToast('⚠️ ' + (err.detail || 'Erro ao adicionar'));
+    }
+  } catch(e) { showToast('⚠️ Sem conexão com a API'); }
+}
+
+async function subToggle(id) {
+  try {
+    const res = await fetch('/api/assinantes/' + id + '/toggle', {method: 'PATCH'});
+    if (res.ok) { await loadSubs(); showToast('↕️ Status atualizado'); }
+    else showToast('⚠️ Erro ao atualizar');
+  } catch(e) { showToast('⚠️ Sem conexão com a API'); }
+}
+
+async function subDelete(id) {
+  if (!confirm('Remover este assinante?')) return;
+  try {
+    const res = await fetch('/api/assinantes/' + id, {method: 'DELETE'});
+    if (res.ok) { await loadSubs(); showToast('🗑️ Assinante removido'); }
+    else showToast('⚠️ Erro ao remover');
+  } catch(e) { showToast('⚠️ Sem conexão com a API'); }
+}
 </script>
 </body>
 </html>

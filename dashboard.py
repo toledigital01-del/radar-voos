@@ -317,7 +317,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Radar Voos</title>
+<title>Radar Voos — Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -916,9 +916,9 @@ HTML = _build_html()
 
 @app.get("/", response_class=HTMLResponse)
 def index():
-    static_index = os.path.join(_STATIC_DIR, "index.html")
-    if os.path.exists(static_index):
-        with open(static_index, "r", encoding="utf-8") as f:
+    static_path = os.path.join(_STATIC_DIR, "index.html")
+    if os.path.exists(static_path):
+        with open(static_path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
     return HTMLResponse(content=HTML)
 
