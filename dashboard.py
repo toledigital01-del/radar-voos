@@ -10,7 +10,8 @@ truststore.inject_into_ssl()
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.exception_handlers import http_exception_handler
 from pydantic import BaseModel
 from sqlalchemy import func, desc
@@ -22,6 +23,10 @@ from src.database.models import Session, HistoricoPreco, Alerta, Assinante
 from config import USER_CONFIG_PATH, _DEFAULTS, CITY_GROUPS
 
 app = FastAPI(title="Radar Voos Dashboard")
+
+_STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+if os.path.exists(_STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -911,6 +916,9 @@ HTML = _build_html()
 
 @app.get("/", response_class=HTMLResponse)
 def index():
+    static_index = os.path.join(_STATIC_DIR, "index.html")
+    if os.path.exists(static_index):
+        return FileResponse(static_index)
     return HTML
 
 

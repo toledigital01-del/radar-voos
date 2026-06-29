@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radar Voos — Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:       #030312;
+  --bg2:      #06061f;
+  --surface:  rgba(255,255,255,0.028);
+  --surface2: rgba(255,255,255,0.055);
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.12);
+  --indigo:   #6366f1;
+  --violet:   #8b5cf6;
+  --cyan:     #22d3ee;
+  --green:    #10b981;
+  --amber:    #f59e0b;
+  --red:      #ef4444;
+  --text:     #f1f5ff;
+  --text2:    #b4c0e0;
+  --muted:    #64748b;
+  --divider:  rgba(255,255,255,0.055);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ─── AURORA BACKGROUND ─── */
+.aurora {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  overflow: hidden;
+}
+.aurora-blob {
+  position: absolute; border-radius: 50%;
+  filter: blur(80px); opacity: 0.12;
+  animation: drift 20s ease-in-out infinite alternate;
+}
+.aurora-blob:nth-child(1) {
+  width: 700px; height: 500px;
+  top: -15%; left: -10%;
+  background: radial-gradient(circle, #6366f1, transparent 70%);
+  animation-duration: 22s;
+}
+.aurora-blob:nth-child(2) {
+  width: 600px; height: 450px;
+  top: -5%; right: -10%;
+  background: radial-gradient(circle, #8b5cf6, transparent 70%);
+  animation-duration: 18s; animation-delay: -5s;
+}
+.aurora-blob:nth-child(3) {
+  width: 500px; height: 400px;
+  bottom: 5%; left: 20%;
+  background: radial-gradient(circle, #10b981, transparent 70%);
+  opacity: 0.06; animation-duration: 25s; animation-delay: -12s;
+}
+@keyframes drift {
+  0%   { transform: translate(0,0) scale(1); }
+  50%  { transform: translate(4%, 3%) scale(1.05); }
+  100% { transform: translate(-3%, 5%) scale(0.97); }
+}
+
+/* ─── NOISE TEXTURE ─── */
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.35;
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.25); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.45); }
+
+/* ─── LAYOUT WRAPPER ─── */
+#app { position: relative; z-index: 2; }
+
+/* ─── HEADER ─── */
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px; height: 64px;
+  border-bottom: 1px solid var(--divider);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  background: rgba(3,3,18,0.75);
+  position: sticky; top: 0; z-index: 300;
+}
+
+.logo { display: flex; align-items: center; gap: 14px; }
+.logo-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  box-shadow: 0 0 24px rgba(99,102,241,0.45), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.logo-name { font-size: 16px; font-weight: 800; letter-spacing: -0.4px; color: #fff; }
+.logo-sub  { font-size: 10.5px; color: var(--muted); font-weight: 400; margin-top: 1px; }
+
+.header-center { display: flex; gap: 4px; }
+.nav-tab {
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 500; color: var(--muted);
+  cursor: pointer; border: none; background: none;
+  transition: all 0.15s ease;
+}
+.nav-tab:hover { color: var(--text2); background: var(--surface); }
+.nav-tab.active { color: var(--text); background: var(--surface2); }
+
+.header-right { display: flex; align-items: center; gap: 12px; }
+.live-pill {
+  display: flex; align-items: center; gap: 7px;
+  padding: 5px 12px; border-radius: 20px;
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.2);
+  font-size: 11.5px; font-weight: 600; color: var(--green);
+}
+.live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 0 rgba(16,185,129,0.5);
+  animation: ping 2s ease-in-out infinite;
+}
+@keyframes ping {
+  0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
+  60%      { box-shadow: 0 0 0 5px rgba(16,185,129,0); }
+}
+.time-chip {
+  font-size: 11.5px; color: var(--muted);
+  display: flex; align-items: center; gap: 5px;
+}
+
+/* ─── TICKER ─── */
+.ticker-wrap {
+  overflow: hidden; position: relative;
+  border-bottom: 1px solid var(--divider);
+  background: rgba(99,102,241,0.03);
+  height: 38px;
+}
+.ticker-wrap::before,
+.ticker-wrap::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 80px; z-index: 1;
+  pointer-events: none;
+}
+.ticker-wrap::before { left: 0;  background: linear-gradient(90deg, var(--bg), transparent); }
+.ticker-wrap::after  { right: 0; background: linear-gradient(-90deg, var(--bg), transparent); }
+.ticker-track {
+  display: flex; align-items: center; height: 100%;
+  animation: scroll 35s linear infinite;
+  width: max-content;
+}
+.ticker-track:hover { animation-play-state: paused; }
+@keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+.t-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 24px; font-size: 12px; white-space: nowrap;
+  border-right: 1px solid var(--divider);
+}
+.t-route { color: var(--muted); font-weight: 500; }
+.t-price { color: var(--text); font-weight: 700; }
+.t-delta { font-weight: 600; font-size: 11px; }
+.t-delta.down { color: var(--green); }
+.t-delta.up   { color: var(--red); }
+
+/* ─── MAIN CONTAINER ─── */
+.container { max-width: 1600px; margin: 0 auto; padding: 28px 40px; }
+
+/* ─── STAT CARDS ─── */
+.stats-row {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 16px; margin-bottom: 24px;
+}
+.stat-card {
+  position: relative; border-radius: 16px;
+  padding: 22px 22px 18px;
+  background: var(--surface);
+  overflow: hidden; cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.stat-card::before {
+  content: ''; position: absolute; inset: 0; border-radius: 16px;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out; mask-composite: exclude;
+  pointer-events: none;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.35); }
+
+.stat-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.stat-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 17px;
+}
+.si-indigo { background: rgba(99,102,241,0.15); }
+.si-green  { background: rgba(16,185,129,0.12); }
+.si-amber  { background: rgba(245,158,11,0.12); }
+.si-violet { background: rgba(139,92,246,0.12); }
+
+.stat-delta {
+  font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px;
+  display: flex; align-items: center; gap: 3px;
+}
+.sd-green  { background: rgba(16,185,129,0.1);  color: var(--green); }
+.sd-amber  { background: rgba(245,158,11,0.1);  color: var(--amber); }
+.sd-muted  { background: rgba(100,116,139,0.12); color: var(--muted); }
+
+.stat-value { font-size: 30px; font-weight: 800; letter-spacing: -1.5px; color: #fff; line-height: 1; }
+.stat-value sup { font-size: 14px; font-weight: 600; color: var(--muted); vertical-align: super; letter-spacing: 0; margin-right: 3px; }
+.stat-value sub { font-size: 14px; font-weight: 500; color: var(--muted); vertical-align: baseline; letter-spacing: 0; }
+.stat-label { font-size: 11.5px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
+
+.stat-glow {
+  position: absolute; bottom: -30px; right: -20px;
+  width: 100px; height: 100px; border-radius: 50%;
+  filter: blur(30px); opacity: 0.07; pointer-events: none;
+}
+.sg-indigo { background: #6366f1; }
+.sg-green  { background: #10b981; }
+.sg-amber  { background: #f59e0b; }
+.sg-violet { background: #8b5cf6; }
+
+/* ─── MAIN GRID ─── */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 20px; align-items: start;
+}
+
+/* ─── GLASS CARD ─── */
+.glass-card {
+  position: relative; border-radius: 18px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.glass-card::before {
+  content: ''; position: absolute; inset: 0; border-radius: 18px;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.09), rgba(255,255,255,0.02));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out; mask-composite: exclude;
+  pointer-events: none;
+}
+
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--divider);
+}
+.card-title {
+  display: flex; align-items: center; gap: 9px;
+  font-size: 13.5px; font-weight: 700; color: var(--text); letter-spacing: -0.2px;
+}
+.card-icon {
+  width: 28px; height: 28px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center; font-size: 13px;
+}
+.chip {
+  font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+  background: rgba(99,102,241,0.12); color: var(--indigo);
+  border: 1px solid rgba(99,102,241,0.2);
+}
+.chip.green { background: rgba(16,185,129,0.1); color: var(--green); border-color: rgba(16,185,129,0.2); }
+
+/* ─── TABLE ─── */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  padding: 10px 16px; text-align: left;
+  font-size: 10.5px; font-weight: 600;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px;
+  border-bottom: 1px solid var(--divider); white-space: nowrap;
+}
+tbody tr {
+  border-bottom: 1px solid var(--divider);
+  transition: background 0.12s; cursor: pointer;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover     { background: rgba(255,255,255,0.022); }
+tbody tr.sel       { background: rgba(99,102,241,0.055); }
+tbody td { padding: 13px 16px; font-size: 13px; color: var(--text2); white-space: nowrap; }
+
+.route-pair { display: flex; align-items: center; gap: 6px; }
+.iata { font-size: 13.5px; font-weight: 800; color: var(--text); letter-spacing: -0.4px; }
+.iata-arrow { color: var(--muted); font-size: 11px; }
+
+.price-main { font-size: 13.5px; font-weight: 800; color: #fff; }
+.price-avg  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 3px 8px; border-radius: 20px;
+  font-size: 11.5px; font-weight: 700; white-space: nowrap;
+}
+.b-green { background: rgba(16,185,129,0.1);  color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+.b-amber { background: rgba(245,158,11,0.1);  color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
+.b-muted { background: rgba(100,116,139,0.1); color: var(--muted); border: 1px solid rgba(100,116,139,0.15); }
+.b-red   { background: rgba(239,68,68,0.1);   color: var(--red);   border: 1px solid rgba(239,68,68,0.2); }
+
+.airline-wrap { display: flex; align-items: center; gap: 7px; }
+.airline-mono {
+  width: 24px; height: 24px; border-radius: 6px;
+  background: rgba(99,102,241,0.12);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9.5px; font-weight: 800; color: var(--indigo);
+}
+.stops-pill {
+  font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px;
+  background: rgba(255,255,255,0.055); color: var(--muted);
+}
+.stops-pill.direct { background: rgba(16,185,129,0.1); color: var(--green); }
+
+/* sparkline in table */
+.spark { width: 60px; height: 24px; display: block; }
+
+.icon-btn {
+  background: none; border: 1px solid var(--border);
+  color: var(--muted); border-radius: 6px; padding: 4px 8px;
+  cursor: pointer; font-size: 11px; font-weight: 600;
+  transition: all 0.15s;
+}
+.icon-btn:hover { border-color: var(--indigo); color: var(--indigo); background: rgba(99,102,241,0.08); }
+tbody tr.sel .icon-btn { border-color: var(--indigo); color: var(--indigo); background: rgba(99,102,241,0.08); }
+
+/* ─── CHART ─── */
+.chart-body { padding: 20px 22px; }
+.pill-row { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 20px; }
+.r-pill {
+  padding: 5px 11px; border-radius: 20px;
+  border: 1px solid var(--border); background: none;
+  color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all 0.15s;
+}
+.r-pill:hover { border-color: rgba(99,102,241,0.4); color: var(--text2); }
+.r-pill.active {
+  background: rgba(99,102,241,0.12); border-color: rgba(99,102,241,0.4);
+  color: var(--indigo); box-shadow: 0 0 14px rgba(99,102,241,0.1);
+}
+.chart-box { height: 210px; position: relative; }
+
+/* ─── SIDEBAR ─── */
+.sidebar { display: flex; flex-direction: column; gap: 18px; }
+
+/* ─── ALERTS ─── */
+.alerts-feed { padding: 6px 0; max-height: 430px; overflow-y: auto; }
+.alert-card {
+  padding: 14px 20px; display: flex; flex-direction: column; gap: 6px;
+  border-bottom: 1px solid var(--divider);
+  transition: background 0.12s;
+  position: relative;
+}
+.alert-card:last-child { border-bottom: none; }
+.alert-card:hover { background: rgba(255,255,255,0.018); }
+.alert-card.hot::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--green);
+  border-radius: 0 2px 2px 0;
+}
+.al-row { display: flex; align-items: center; justify-content: space-between; }
+.al-route { font-size: 13px; font-weight: 700; color: var(--text); }
+.al-price { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -1px; line-height: 1; }
+.al-old   { font-size: 11px; color: var(--muted); text-decoration: line-through; }
+.al-meta  { font-size: 11px; color: var(--muted); }
+
+/* ─── QUICK STATS ─── */
+.qs-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 20px; border-bottom: 1px solid var(--divider);
+}
+.qs-row:last-child { border-bottom: none; }
+.qs-label { font-size: 11.5px; color: var(--muted); }
+.qs-val   { font-size: 13px; font-weight: 700; color: var(--text); }
+.qs-dot   { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+
+/* ─── EMPTY ─── */
+.empty {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 10px; padding: 48px 20px; color: var(--muted); text-align: center;
+}
+.empty-icon { font-size: 30px; opacity: 0.35; }
+.empty p { font-size: 12.5px; line-height: 1.6; }
+
+/* ─── TOAST ─── */
+#toast {
+  position: fixed; bottom: 28px; right: 28px; z-index: 999;
+  background: rgba(8,8,30,0.95);
+  border: 1px solid rgba(99,102,241,0.35);
+  border-radius: 12px; padding: 12px 18px;
+  font-size: 12.5px; font-weight: 500; color: var(--text);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(99,102,241,0.1);
+  transform: translateY(80px); opacity: 0;
+  transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  display: flex; align-items: center; gap: 10px; max-width: 320px;
+  backdrop-filter: blur(20px);
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+
+/* ─── SKELETON ─── */
+.skel {
+  background: linear-gradient(90deg, var(--surface) 25%, rgba(255,255,255,0.06) 50%, var(--surface) 75%);
+  background-size: 200% 100%; animation: shimmer 1.4s infinite;
+  border-radius: 5px; height: 14px;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ─── FADE IN ─── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fu { animation: fadeUp 0.45s ease both; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 1120px) { .main-grid { grid-template-columns: 1fr; } }
+@media (max-width: 720px)  {
+  .stats-row { grid-template-columns: repeat(2,1fr); }
+  .container { padding: 16px 18px; }
+  header { padding: 0 18px; }
+  .header-center { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="aurora">
+  <div class="aurora-blob"></div>
+  <div class="aurora-blob"></div>
+  <div class="aurora-blob"></div>
+</div>
+
+<div id="app">
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">✈️</div>
+    <div>
+      <div class="logo-name">Radar Voos</div>
+      <div class="logo-sub">Monitoramento em tempo real</div>
+    </div>
+  </div>
+
+  <nav class="header-center">
+    <button class="nav-tab active" onclick="switchTab('dashboard',this)">📊 Dashboard</button>
+    <button class="nav-tab" onclick="switchTab('config',this)">⚙️ Configurações</button>
+    <button class="nav-tab" onclick="switchTab('subs',this)">👥 Assinantes</button>
+  </nav>
+
+  <div class="header-right">
+    <span class="time-chip">⏱ atualizado <span id="htime">—</span></span>
+    <div class="live-pill"><div class="live-dot"></div>AO VIVO</div>
+  </div>
+</header>
+
+<!-- ── TICKER ── -->
+<div class="ticker-wrap">
+  <div class="ticker-track" id="ticker"></div>
+</div>
+
+<!-- ── DASHBOARD TAB ── -->
+<div id="tab-dashboard" class="container">
+
+  <!-- STAT CARDS -->
+  <div class="stats-row">
+    <div class="stat-card fu" style="animation-delay:.00s">
+      <div class="stat-top">
+        <div class="stat-icon si-indigo">🗺️</div>
+        <div class="stat-delta sd-muted" id="sd-rotas">— rotas</div>
+      </div>
+      <div class="stat-value" id="sv-rotas"><span>—</span></div>
+      <div class="stat-label">Rotas Monitoradas</div>
+      <div class="stat-glow sg-indigo"></div>
+    </div>
+    <div class="stat-card fu" style="animation-delay:.06s">
+      <div class="stat-top">
+        <div class="stat-icon si-green">🔔</div>
+        <div class="stat-delta sd-green" id="sd-alertas">hoje</div>
+      </div>
+      <div class="stat-value" id="sv-alertas"><span>—</span></div>
+      <div class="stat-label">Alertas Disparados</div>
+      <div class="stat-glow sg-green"></div>
+    </div>
+    <div class="stat-card fu" style="animation-delay:.12s">
+      <div class="stat-top">
+        <div class="stat-icon si-amber">🏷️</div>
+        <div class="stat-delta sd-green" id="sd-desc">vs média</div>
+      </div>
+      <div class="stat-value" id="sv-desc"><span>—</span><sub>%</sub></div>
+      <div class="stat-label">Maior Desconto</div>
+      <div class="stat-glow sg-amber"></div>
+    </div>
+    <div class="stat-card fu" style="animation-delay:.18s">
+      <div class="stat-top">
+        <div class="stat-icon si-violet">⚡</div>
+        <div class="stat-delta sd-muted">por hora</div>
+      </div>
+      <div class="stat-value"><span id="sv-ciclo">—</span></div>
+      <div class="stat-label">Próximo Ciclo</div>
+      <div class="stat-glow sg-violet"></div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+    <div style="display:flex;flex-direction:column;gap:20px;">
+
+      <!-- ROUTES TABLE -->
+      <div class="glass-card fu" style="animation-delay:.22s">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="card-icon" style="background:rgba(99,102,241,0.12)">📊</div>
+            Rotas Monitoradas
+          </div>
+          <span class="chip" id="routes-chip">carregando...</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Rota</th>
+                <th>Preço Atual</th>
+                <th>Média 30d</th>
+                <th>Desconto</th>
+                <th>Companhia</th>
+                <th>Paradas</th>
+                <th>Tendência</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="routes-tbody">
+              <tr><td colspan="8"><div class="skel" style="margin:14px 16px;height:36px;"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PRICE CHART -->
+      <div class="glass-card fu" style="animation-delay:.28s">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="card-icon" style="background:rgba(139,92,246,0.12)">📈</div>
+            Histórico de Preços
+          </div>
+          <span id="chart-label" style="font-size:12px;color:var(--indigo);font-weight:600;"></span>
+        </div>
+        <div class="chart-body">
+          <div class="pill-row" id="route-pills"></div>
+          <div class="chart-box"><canvas id="priceChart"></canvas></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+      <!-- ALERTS -->
+      <div class="glass-card fu" style="animation-delay:.24s">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="card-icon" style="background:rgba(16,185,129,0.1)">🚨</div>
+            Alertas Recentes
+          </div>
+          <span class="chip green" id="alerts-chip">0</span>
+        </div>
+        <div class="alerts-feed" id="alerts-list">
+          <div class="empty"><div class="empty-icon">🔔</div><p>Nenhum alerta ainda.<br>O sistema verifica a cada hora.</p></div>
+        </div>
+      </div>
+
+      <!-- CONFIG QUICK INFO -->
+      <div class="glass-card fu" style="animation-delay:.32s">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="card-icon" style="background:rgba(245,158,11,0.1)">ℹ️</div>
+            Sistema
+          </div>
+        </div>
+        <div id="qs-body">
+          <div class="qs-row"><span class="qs-label">API de Voos</span><span class="qs-val">SerpApi</span></div>
+          <div class="qs-row"><span class="qs-label">Banco de Dados</span><span class="qs-val">Supabase</span></div>
+          <div class="qs-row"><span class="qs-label">Notificações</span><span class="qs-val">Telegram</span></div>
+          <div class="qs-row"><span class="qs-label">Desconto mínimo</span><span class="qs-val">30%</span></div>
+          <div class="qs-row"><span class="qs-label">Anti-spam</span><span class="qs-val">6 horas</span></div>
+          <div class="qs-row">
+            <span class="qs-label">Bot Status</span>
+            <span class="qs-val" id="qs-bot"><span class="qs-dot" style="background:var(--amber)"></span>Aguardando</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── CONFIG TAB ── -->
+<div id="tab-config" class="container" style="display:none">
+  <div class="glass-card" style="max-width:680px;margin:0 auto;">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="card-icon" style="background:rgba(99,102,241,0.12)">⚙️</div>
+        Configurações do Sistema
+      </div>
+    </div>
+    <div style="padding:32px 28px;">
+      <div class="empty"><div class="empty-icon">🚧</div><p>Configurações avançadas<br>em breve.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SUBS TAB ── -->
+<div id="tab-subs" class="container" style="display:none">
+  <div class="glass-card" style="max-width:680px;margin:0 auto;">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="card-icon" style="background:rgba(16,185,129,0.1)">👥</div>
+        Assinantes
+      </div>
+    </div>
+    <div style="padding:32px 28px;">
+      <div class="empty"><div class="empty-icon">👤</div><p>Gerenciamento de assinantes<br>em breve.</p></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<!-- TOAST -->
+<div id="toast"><span>📡</span><span id="toast-msg">Conectado</span></div>
+
+<script>
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+function fmt(n)  { return 'R$' + Math.round(n).toLocaleString('pt-BR'); }
+function ago(h)  { const d=new Date(); d.setHours(d.getHours()-h); return d.toISOString(); }
+function relTime(iso) {
+  if (!iso) return '';
+  const m = Math.floor((Date.now()-new Date(iso))/60000);
+  if (m<1) return 'agora';
+  if (m<60) return m+'min';
+  const h = Math.floor(m/60);
+  if (h<24) return h+'h atrás';
+  return Math.floor(h/24)+'d atrás';
+}
+function discCls(p) {
+  if (p>=30) return 'b-green';
+  if (p>=15) return 'b-amber';
+  return 'b-muted';
+}
+function discArrow(p) { return p>=30?'▼':p>=15?'▾':''; }
+function initials(s) { return s.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+function stopsInfo(n) {
+  if (n===0) return {label:'Direto',cls:'direct'};
+  return {label:n+' escala'+(n>1?'s':''),cls:''};
+}
+function showToast(msg,delay=400) {
+  setTimeout(()=>{
+    $('toast-msg').textContent=msg;
+    $('toast').classList.add('show');
+    setTimeout(()=>$('toast').classList.remove('show'),3800);
+  },delay);
+}
+
+// ── DEMO DATA ─────────────────────────────────────────────────────────────────
+const DEMO_ROUTES = [
+  {rota:'GRU → CDG',origem:'GRU',destino:'CDG',preco_atual:3420,preco_medio:4100,desconto_pct:16.6,companhia:'Air France',paradas:1,atualizado_em:ago(3)},
+  {rota:'GIG → LIS',origem:'GIG',destino:'LIS',preco_atual:1968,preco_medio:2890,desconto_pct:31.9,companhia:'TAP',paradas:0,atualizado_em:ago(1)},
+  {rota:'GRU → MIA',origem:'GRU',destino:'MIA',preco_atual:1548,preco_medio:2150,desconto_pct:27.5,companhia:'LATAM',paradas:1,atualizado_em:ago(5)},
+  {rota:'POA → EZE',origem:'POA',destino:'EZE',preco_atual:527,preco_medio:890,desconto_pct:40.8,companhia:'Aerolíneas',paradas:0,atualizado_em:ago(0)},
+  {rota:'GRU → JFK',origem:'GRU',destino:'JFK',preco_atual:2680,preco_medio:2900,desconto_pct:7.6,companhia:'American',paradas:1,atualizado_em:ago(8)},
+  {rota:'FOR → LIS',origem:'FOR',destino:'LIS',preco_atual:2414,preco_medio:3100,desconto_pct:22.1,companhia:'TAP',paradas:1,atualizado_em:ago(2)},
+  {rota:'GRU → ORD',origem:'GRU',destino:'ORD',preco_atual:2950,preco_medio:3200,desconto_pct:7.8,companhia:'United',paradas:2,atualizado_em:ago(6)},
+  {rota:'GRU → MAD',origem:'GRU',destino:'MAD',preco_atual:2624,preco_medio:3200,desconto_pct:18.0,companhia:'Iberia',paradas:1,atualizado_em:ago(4)},
+];
+const DEMO_ALERTS = [
+  {rota:'POA → EZE',preco:527,preco_medio:890,desconto_pct:40.8,companhia:'Aerolíneas',enviado_em:ago(0)},
+  {rota:'GIG → LIS',preco:1968,preco_medio:2890,desconto_pct:31.9,companhia:'TAP',enviado_em:ago(22)},
+];
+const DEMO_STATS = {rotas_monitoradas:8,alertas_hoje:2,maior_desconto:40.8};
+
+// ── NAV TABS ──────────────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  ['dashboard','config','subs'].forEach(t=>{
+    $('tab-'+t).style.display = t===name ? '' : 'none';
+  });
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── SPARKLINE ─────────────────────────────────────────────────────────────────
+function sparkline(priceNow, priceMed) {
+  const pts=[]; const n=16;
+  for(let i=0;i<n;i++){
+    const noise=(Math.random()-.5)*.2*priceMed;
+    const trend=(i/n)*((priceNow-priceMed)*.8);
+    pts.push(Math.round(priceMed+noise+trend));
+  }
+  pts.push(priceNow);
+  const mn=Math.min(...pts), mx=Math.max(...pts);
+  const rng=mx-mn||1;
+  const w=60,h=24,pad=2;
+  const points=pts.map((v,i)=>{
+    const x=pad+(i/(pts.length-1))*(w-pad*2);
+    const y=h-pad-(v-mn)/rng*(h-pad*2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const color=priceNow<priceMed?'#10b981':'#f59e0b';
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}">
+    <polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+// ── TICKER ────────────────────────────────────────────────────────────────────
+function buildTicker(routes){
+  const el=$('ticker');
+  const all=[...routes,...routes];
+  el.innerHTML=all.map(r=>{
+    const down=r.desconto_pct>=15;
+    return `<div class="t-item">
+      <span class="t-route">${r.rota}</span>
+      <span class="t-price">${fmt(r.preco_atual)}</span>
+      <span class="t-delta ${down?'down':''}">${down?'▼':'▲'} ${Math.abs(r.desconto_pct).toFixed(1)}%</span>
+    </div>`;
+  }).join('');
+}
+
+// ── STATS ─────────────────────────────────────────────────────────────────────
+function animCount(el, target, prefix='', suffix='') {
+  const dur=800, start=Date.now(), from=0;
+  const tick=()=>{
+    const p=Math.min((Date.now()-start)/dur,1);
+    const ease=1-Math.pow(1-p,3);
+    el.innerHTML=prefix+Math.round(from+(target-from)*ease)+suffix;
+    if(p<1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+function renderStats(s,fromAPI){
+  animCount($('sv-rotas'), s.rotas_monitoradas);
+  animCount($('sv-alertas'), s.alertas_hoje);
+  animCount($('sv-desc'), Math.round(s.maior_desconto));
+  $('sd-rotas').textContent = s.rotas_monitoradas+' ativas';
+  $('sd-alertas').textContent = s.alertas_hoje>0?'↑ hoje':'hoje';
+  $('sd-desc').textContent = '▼ vs média';
+  if(fromAPI) showToast('✅ Dados em tempo real carregados');
+}
+
+// ── ROUTES TABLE ──────────────────────────────────────────────────────────────
+let selIdx=0;
+function renderRoutes(routes){
+  if(!routes.length){ $('routes-tbody').innerHTML=`<tr><td colspan="8"><div class="empty"><div class="empty-icon">✈️</div><p>Nenhuma rota encontrada.</p></div></td></tr>`; return; }
+  $('routes-chip').textContent=routes.length+' rotas';
+  $('routes-tbody').innerHTML=routes.map((r,i)=>{
+    const s=stopsInfo(r.paradas||0);
+    return `<tr class="${i===selIdx?'sel':''}" onclick="selRoute(${i})">
+      <td><div class="route-pair"><span class="iata">${r.rota.replace(' → ','</span><span class="iata-arrow">→</span><span class="iata">')}</span></div></td>
+      <td><div class="price-main">${fmt(r.preco_atual)}</div></td>
+      <td><div class="price-avg">${fmt(r.preco_medio)}</div></td>
+      <td><span class="badge ${discCls(r.desconto_pct)}">${discArrow(r.desconto_pct)} ${r.desconto_pct.toFixed(1)}%</span></td>
+      <td><div class="airline-wrap"><div class="airline-mono">${initials(r.companhia)}</div><span>${r.companhia}</span></div></td>
+      <td><span class="stops-pill ${s.cls}">${s.label}</span></td>
+      <td>${sparkline(r.preco_atual,r.preco_medio)}</td>
+      <td><button class="icon-btn" onclick="event.stopPropagation();selRoute(${i})">📈</button></td>
+    </tr>`;
+  }).join('');
+  buildPills(routes);
+}
+
+function selRoute(idx){
+  window._routes=window._routes||DEMO_ROUTES;
+  selIdx=idx;
+  const r=window._routes[idx];
+  document.querySelectorAll('#routes-tbody tr').forEach((tr,i)=>tr.classList.toggle('sel',i===idx));
+  document.querySelectorAll('.r-pill').forEach((p,i)=>p.classList.toggle('active',i===idx));
+  $('chart-label').textContent=r.rota;
+  loadChart(r.origem,r.destino);
+}
+
+// ── PILLS ─────────────────────────────────────────────────────────────────────
+function buildPills(routes){
+  $('route-pills').innerHTML=routes.map((r,i)=>
+    `<button class="r-pill ${i===0?'active':''}" onclick="selRoute(${i})">${r.rota}</button>`
+  ).join('');
+}
+
+// ── ALERTS FEED ───────────────────────────────────────────────────────────────
+function renderAlerts(alerts){
+  $('alerts-chip').textContent=alerts.length;
+  if(!alerts.length){ $('alerts-list').innerHTML=`<div class="empty"><div class="empty-icon">🔔</div><p>Nenhum alerta ainda.<br>Verifica a cada hora.</p></div>`; return; }
+  $('alerts-list').innerHTML=alerts.map(a=>`
+    <div class="alert-card ${a.desconto_pct>=30?'hot':''}">
+      <div class="al-row">
+        <span class="al-route">${a.rota}</span>
+        <span class="badge ${discCls(a.desconto_pct)}">${discArrow(a.desconto_pct)} ${a.desconto_pct.toFixed(1)}%</span>
+      </div>
+      <div class="al-row" style="margin-top:4px">
+        <div>
+          <div class="al-price">${fmt(a.preco)}</div>
+          <div class="al-old">${fmt(a.preco_medio)} normal</div>
+        </div>
+        <div style="text-align:right">
+          <div class="al-meta">${a.companhia}</div>
+          <div class="al-meta">${relTime(a.enviado_em)}</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── CHART ─────────────────────────────────────────────────────────────────────
+let chartInst=null;
+function demoHistory(orig,dest){
+  const r=DEMO_ROUTES.find(x=>x.origem===orig&&x.destino===dest)||DEMO_ROUTES[0];
+  const pts=[];
+  for(let i=29;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const noise=(Math.random()-.5)*.18*r.preco_medio;
+    const trend=i>20?0:-(0.005*(20-i)*r.preco_medio);
+    pts.push({data:d.toISOString().split('T')[0],preco:Math.round(r.preco_medio+noise+trend)});
+  }
+  pts[pts.length-1].preco=r.preco_atual;
+  return pts;
+}
+function renderChart(data,label){
+  const ctx=$('priceChart').getContext('2d');
+  if(chartInst) chartInst.destroy();
+  const labels=data.map(d=>{ const dt=new Date(d.data+'T00:00:00'); return dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); });
+  const values=data.map(d=>d.preco);
+  const mn=Math.min(...values),mx=Math.max(...values);
+  const g=ctx.createLinearGradient(0,0,0,210);
+  g.addColorStop(0,'rgba(99,102,241,0.22)');
+  g.addColorStop(0.7,'rgba(99,102,241,0.04)');
+  g.addColorStop(1,'rgba(99,102,241,0)');
+  chartInst=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{label:'Preço',data:values,borderColor:'#6366f1',backgroundColor:g,borderWidth:2,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:'#6366f1',pointHoverBorderColor:'#fff',pointHoverBorderWidth:2,fill:true,tension:0.4}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{intersect:false,mode:'index'},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'rgba(6,6,24,0.96)',
+          borderColor:'rgba(99,102,241,0.3)',borderWidth:1,
+          titleColor:'#64748b',bodyColor:'#fff',
+          bodyFont:{weight:'800',size:14},titleFont:{size:11},
+          padding:12,cornerRadius:10,
+          callbacks:{label:ctx=>' R$ '+ctx.parsed.y.toLocaleString('pt-BR')}
+        }
+      },
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.03)',drawBorder:false},ticks:{color:'#64748b',font:{size:10},maxTicksLimit:8,maxRotation:0},border:{display:false}},
+        y:{grid:{color:'rgba(255,255,255,0.03)',drawBorder:false},ticks:{color:'#64748b',font:{size:10},callback:v=>'R$'+(v/1000).toFixed(1)+'k'},border:{display:false},min:Math.floor(mn*.93),max:Math.ceil(mx*1.05)}
+      }
+    }
+  });
+}
+async function loadChart(orig,dest){
+  try {
+    const res=await fetch(`/api/historico/${orig}/${dest}?dias=30`);
+    if(!res.ok) throw 0;
+    const data=await res.json();
+    if(data.length){ renderChart(data,`${orig} → ${dest}`); return; }
+  } catch(e){}
+  renderChart(demoHistory(orig,dest),`${orig} → ${dest}`);
+}
+
+// ── CYCLE TIMER ───────────────────────────────────────────────────────────────
+(function cycleTimer(){
+  const s=Date.now(),H=3600000;
+  setInterval(()=>{
+    const left=H-(Date.now()-s)%H;
+    const m=Math.floor(left/60000),ss=Math.floor((left%60000)/1000);
+    $('sv-ciclo').textContent=m+'m'+String(ss).padStart(2,'0')+'s';
+  },1000);
+})();
+
+// ── HEADER TIME ───────────────────────────────────────────────────────────────
+function updateTime(){
+  $('htime').textContent=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+updateTime();
+setInterval(updateTime,30000);
+
+// ── BOOTSTRAP ─────────────────────────────────────────────────────────────────
+async function bootstrap(){
+  let routes=DEMO_ROUTES,alerts=DEMO_ALERTS,stats=DEMO_STATS,live=false;
+  try {
+    const [sr,rr,ar]=await Promise.all([fetch('/api/stats'),fetch('/api/rotas'),fetch('/api/alertas')]);
+    if(sr.ok&&rr.ok&&ar.ok){
+      const [s,r,a]=await Promise.all([sr.json(),rr.json(),ar.json()]);
+      if(r.length){routes=r;alerts=a;stats=s;live=true;}
+    }
+  }catch(e){}
+  window._routes=routes;
+  buildTicker(routes);
+  renderStats(stats,live);
+  renderRoutes(routes);
+  renderAlerts(alerts);
+  selIdx=0;
+  const f=routes[0];
+  $('chart-label').textContent=f.rota;
+  loadChart(f.origem,f.destino);
+  if(!live) showToast('📊 Modo demo — conecte a API para dados reais',900);
+}
+
+bootstrap();
+setInterval(bootstrap,5*60*1000);
+</script>
+</body>
+</html>
