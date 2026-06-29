@@ -10,7 +10,7 @@ truststore.inject_into_ssl()
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.exception_handlers import http_exception_handler
 from pydantic import BaseModel
@@ -918,8 +918,9 @@ HTML = _build_html()
 def index():
     static_index = os.path.join(_STATIC_DIR, "index.html")
     if os.path.exists(static_index):
-        return FileResponse(static_index)
-    return HTML
+        with open(static_index, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content=HTML)
 
 
 @app.get("/api/stats")
