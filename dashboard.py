@@ -1118,6 +1118,40 @@ def toggle_assinante(id: int):
         session.close()
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# API — Ações / Testes
+# ══════════════════════════════════════════════════════════════════════════════
+
+@app.post("/api/testar-telegram")
+def testar_telegram():
+    from src.alerts.telegram import enviar_telegram
+    from config import now_brasilia
+    hora = now_brasilia().strftime("%d/%m/%Y %H:%M")
+    msg = (
+        "✅ *Radar Voos — Teste de Conexão*\n\n"
+        f"🕐 Horário: {hora} (Brasília)\n"
+        "📡 Bot conectado e funcionando!\n"
+        "🔔 Você receberá alertas de promoções aqui."
+    )
+    ok = enviar_telegram(msg)
+    if ok:
+        return {"ok": True, "msg": "Mensagem de teste enviada no Telegram!"}
+    raise HTTPException(status_code=500, detail="Falha ao enviar — verifique TELEGRAM_BOT_TOKEN e TELEGRAM_CHANNEL_ID no Railway")
+
+
+@app.post("/api/verificar")
+def verificar_rotas():
+    import threading
+    from src.scheduler.jobs import ciclo_monitoramento
+    def _run():
+        try:
+            ciclo_monitoramento()
+        except Exception as e:
+            print(f"Erro no ciclo: {e}")
+    threading.Thread(target=_run, daemon=True).start()
+    return {"ok": True, "msg": "Verificação iniciada em background. Alertas serão enviados se houver promoções."}
+
+
 if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 8000))
