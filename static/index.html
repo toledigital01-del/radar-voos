@@ -200,6 +200,20 @@ tbody tr.hl:hover{background:rgba(16,185,129,.09)}
 select.inp{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a6580'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
 
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+
+/* ── AUTOCOMPLETE ── */
+.ac-wrap{position:relative;flex:1}
+.ac-drop{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#080b1e;border:1px solid var(--border2);border-radius:10px;z-index:200;max-height:300px;overflow-y:auto;display:none;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.ac-drop.open{display:block}
+.ac-item{padding:9px 13px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);transition:.1s;display:flex;align-items:center;gap:10px}
+.ac-item:last-child{border-bottom:none}
+.ac-item:hover,.ac-item.hl{background:rgba(139,92,246,.12)}
+.ac-code{font-size:13px;font-weight:700;color:var(--violet);min-width:38px;font-family:monospace}
+.ac-info{flex:1;min-width:0}
+.ac-name{font-size:12px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ac-apts{font-size:10px;color:var(--muted);margin-top:1px}
+.ac-all{display:inline-flex;align-items:center;gap:3px;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:var(--green);font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;flex-shrink:0}
+.ac-empty{padding:12px 14px;font-size:11px;color:var(--muted);text-align:center}
 @media(max-width:900px){.sg{grid-template-columns:1fr 1fr}.two-col,.cfg-grid{grid-template-columns:1fr}.srp-row,.ch-cards,.add-sub-grid{flex-wrap:wrap}}
 </style>
 </head>
@@ -242,8 +256,8 @@ select.inp{-webkit-appearance:none;appearance:none;background-image:url("data:im
     <button class="btn-g" onclick="verifyAll()">🔍 Verificar todas as rotas</button>
   </div>
   <div class="srp-row">
-    <div class="sf"><div class="sflbl">Origem</div><input class="inp" id="i-orig" placeholder="GRU" maxlength="4" oninput="this.value=this.value.toUpperCase()"></div>
-    <div class="sf"><div class="sflbl">Destino</div><input class="inp" id="i-dest" placeholder="LIS" maxlength="4" oninput="this.value=this.value.toUpperCase()"></div>
+    <div class="sf ac-wrap"><div class="sflbl">Origem</div><input class="inp" id="i-orig" placeholder="POA ou Porto Alegre" autocomplete="off" oninput="acFilter('i-orig','drop-io')" onfocus="acFilter('i-orig','drop-io')" onkeydown="acKey(event,'drop-io','i-orig')"><div class="ac-drop" id="drop-io"></div></div>
+    <div class="sf ac-wrap"><div class="sflbl">Destino</div><input class="inp" id="i-dest" placeholder="GRU ou São Paulo" autocomplete="off" oninput="acFilter('i-dest','drop-id')" onfocus="acFilter('i-dest','drop-id')" onkeydown="acKey(event,'drop-id','i-dest')"><div class="ac-drop" id="drop-id"></div></div>
     <div class="sf" style="flex:1.4"><div class="sflbl">Data</div><input class="inp" id="i-date" type="date"></div>
     <button class="btn-p" onclick="doSearch()">🔎 Buscar preço</button>
   </div>
@@ -426,9 +440,9 @@ select.inp{-webkit-appearance:none;appearance:none;background-image:url("data:im
     <div class="cfg-ttl">🗺️ Rotas Monitoradas</div>
     <div class="cfg-sub">Adicione pares de origem/destino para monitorar preços automaticamente</div>
     <div style="display:flex;gap:8px;align-items:flex-end">
-      <div class="sf" style="flex:1"><div class="sflbl">Origem</div><input class="inp" id="r-orig" placeholder="POA" maxlength="4" oninput="this.value=this.value.toUpperCase()"></div>
+      <div class="sf ac-wrap" style="flex:1"><div class="sflbl">Origem</div><input class="inp" id="r-orig" placeholder="POA ou Porto Alegre" autocomplete="off" oninput="acFilter('r-orig','drop-ro')" onfocus="acFilter('r-orig','drop-ro')" onkeydown="acKey(event,'drop-ro','r-orig')"><div class="ac-drop" id="drop-ro"></div></div>
       <div style="color:var(--muted);padding-bottom:10px;font-size:16px">→</div>
-      <div class="sf" style="flex:1"><div class="sflbl">Destino</div><input class="inp" id="r-dest" placeholder="GRU" maxlength="4" oninput="this.value=this.value.toUpperCase()"></div>
+      <div class="sf ac-wrap" style="flex:1"><div class="sflbl">Destino</div><input class="inp" id="r-dest" placeholder="GRU ou São Paulo" autocomplete="off" oninput="acFilter('r-dest','drop-rd')" onfocus="acFilter('r-dest','drop-rd')" onkeydown="acKey(event,'drop-rd','r-dest')"><div class="ac-drop" id="drop-rd"></div></div>
       <button class="btn-p" style="font-size:11px;padding:8px 14px" onclick="addRota()">+ Adicionar</button>
     </div>
     <div class="rota-list" id="cfg-rotas">
@@ -647,19 +661,114 @@ function buildChart(){
   chart=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'Preço',data:prices,borderColor:'#6366f1',backgroundColor:g,borderWidth:2,tension:.35,fill:true,pointBackgroundColor:'#6366f1',pointRadius:3,pointHoverRadius:5},...(avg?[{label:'Média',data:prices.map(()=>avg),borderColor:'rgba(245,158,11,.5)',borderWidth:1.5,borderDash:[4,4],fill:false,pointRadius:0}]:[])]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f1330',borderColor:'rgba(255,255,255,.1)',borderWidth:1,titleColor:'#a8b4d0',bodyColor:'#f0f4ff',callbacks:{label:c=>' '+BRL(c.raw)}}},scales:{x:{ticks:{color:'#5a6580',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#5a6580',font:{size:10},callback:v=>'R$'+Number(v/1000).toFixed(1)+'k'},grid:{color:'rgba(255,255,255,.04)'}}}}});
 }
 
+/* ── AUTOCOMPLETE ── */
+let _apts={},_grps={};
+
+async function loadAirports(){
+  try{
+    [_apts,_grps]=await Promise.all([
+      fetch('/api/config/airports').then(r=>r.json()),
+      fetch('/api/config/groups').then(r=>r.json())
+    ]);
+  }catch(e){console.warn('airports not loaded',e);}
+}
+
+function acSuggest(q){
+  if(!q||q.length<2) return [];
+  const s=q.toLowerCase().trim();
+  const res=[],seen=new Set();
+
+  // 1. Grupos de cidade (ex: "rio" → RIO com GIG+SDU)
+  for(const[code,info]of Object.entries(_grps)){
+    if(seen.has(code)) continue;
+    const match=code.toLowerCase().startsWith(s)||info.nome.toLowerCase().includes(s);
+    if(match){
+      seen.add(code);
+      const apts=info.aeroportos||[];
+      if(apts.length>1){
+        // Opção TODOS + aeroportos individuais
+        res.push({code,label:info.nome,sub:apts.join(' · '),type:'city',apts});
+        apts.forEach(a=>{
+          if(!seen.has(a)){seen.add(a);res.push({code:a,label:_apts[a]||a,sub:'',type:'apt'});}
+        });
+      } else if(apts.length===1){
+        const a=apts[0];seen.add(a);
+        res.push({code:a,label:_apts[a]||info.nome,sub:'',type:'apt'});
+      }
+    }
+  }
+
+  // 2. Aeroportos individuais por código ou nome
+  for(const[code,name]of Object.entries(_apts)){
+    if(seen.has(code)) continue;
+    if(code.toLowerCase().startsWith(s)||name.toLowerCase().includes(s)){
+      seen.add(code);
+      res.push({code,label:name,sub:'',type:'apt'});
+    }
+  }
+
+  return res.slice(0,10);
+}
+
+function acFilter(inputId,dropId){
+  const inp=document.getElementById(inputId);
+  const drop=document.getElementById(dropId);
+  const q=inp.value;
+  const suggestions=acSuggest(q);
+  if(!suggestions.length){
+    drop.innerHTML=q.length>=2?'<div class="ac-empty">Nenhum aeroporto encontrado</div>':'';
+    drop.classList.toggle('open',q.length>=2);
+    return;
+  }
+  drop.innerHTML=suggestions.map((s,i)=>`
+    <div class="ac-item" data-code="${s.code}" data-input="${inputId}" data-drop="${dropId}" onclick="acSelect('${inputId}','${dropId}','${s.code}')">
+      <span class="ac-code">${s.code}</span>
+      <div class="ac-info">
+        <div class="ac-name">${s.label}</div>
+        ${s.sub?`<div class="ac-apts">${s.sub}</div>`:''}
+      </div>
+      ${s.type==='city'?'<span class="ac-all">✈ TODOS</span>':''}
+    </div>`).join('');
+  drop.classList.add('open');
+}
+
+function acSelect(inputId,dropId,code){
+  document.getElementById(inputId).value=code;
+  document.getElementById(dropId).classList.remove('open');
+}
+
+function acKey(e,dropId,inputId){
+  const drop=document.getElementById(dropId);
+  const items=[...drop.querySelectorAll('.ac-item')];
+  const cur=items.findIndex(i=>i.classList.contains('hl'));
+  if(e.key==='ArrowDown'){e.preventDefault();const n=cur<items.length-1?cur+1:0;items.forEach(i=>i.classList.remove('hl'));if(items[n])items[n].classList.add('hl');}
+  else if(e.key==='ArrowUp'){e.preventDefault();const n=cur>0?cur-1:items.length-1;items.forEach(i=>i.classList.remove('hl'));if(items[n])items[n].classList.add('hl');}
+  else if(e.key==='Enter'){e.preventDefault();const hl=drop.querySelector('.ac-item.hl');if(hl){acSelect(inputId,dropId,hl.dataset.code);}else{const first=drop.querySelector('.ac-item');if(first)acSelect(inputId,dropId,first.dataset.code);}}
+  else if(e.key==='Escape'){drop.classList.remove('open');}
+}
+
+// Fechar dropdowns ao clicar fora
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.ac-wrap')) document.querySelectorAll('.ac-drop').forEach(d=>d.classList.remove('open'));
+});
+
 /* ── SEARCH ── */
 async function doSearch(){
-  const o=document.getElementById('i-orig').value.trim(),d=document.getElementById('i-dest').value.trim(),dt=document.getElementById('i-date').value;
+  const o=document.getElementById('i-orig').value.trim().toUpperCase();
+  const d=document.getElementById('i-dest').value.trim().toUpperCase();
+  const dt=document.getElementById('i-date').value;
   if(!o||!d){showToast('Preencha origem e destino',false);return;}
-  showToast('🔎 Buscando...');
-  try{const r=await fetch('/api/buscar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({origem:o,destino:d,data:dt})});
-    if(r.ok){const j=await r.json();showToast(`✅ Preço: ${BRL(j.preco||0)}`);loadAll();}else showToast('Endpoint não disponível nesta versão',false);}
-  catch{showToast('Endpoint não disponível nesta versão',false);}
+  showToast('Buscando...');
+  try{
+    const r=await fetch('/api/buscar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({origem:o,destino:d,data:dt})});
+    if(r.ok){const j=await r.json();showToast(`Preco: ${BRL(j.preco||0)}`);loadAll();}
+    else showToast('Busca nao disponivel nesta versao',false);
+  }catch{showToast('Busca nao disponivel nesta versao',false);}
 }
 async function verifyAll(){
-  showToast('🔄 Verificando rotas...');
-  try{const r=await fetch('/api/verificar',{method:'POST'});r.ok?showToast('✅ Verificação concluída'):showToast('Não disponível',false);}
-  catch{showToast('Não disponível',false);}
+  showToast('Verificando rotas...');
+  try{const r=await fetch('/api/verificar',{method:'POST'});r.ok?showToast('Verificacao concluida'):showToast('Nao disponivel',false);}
+  catch{showToast('Nao disponivel',false);}
 }
 
 /* ── CONFIG PAGE ── */
@@ -868,6 +977,7 @@ async function delSub(id){if(!confirm('Remover este assinante?'))return;const r=
 /* ── INIT ── */
 document.getElementById('i-date').value=new Date(Date.now()+90*86400000).toISOString().slice(0,10);
 loadAll();
+loadAirports();
 setInterval(loadAll,60000);
 </script>
 </body>
