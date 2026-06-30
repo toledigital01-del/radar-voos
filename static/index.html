@@ -777,11 +777,24 @@ function saveEmail(){
 /* ── CHANNEL TEST ── */
 async function testTg(){
   const box=document.getElementById('tg-result');
-  box.style.display='block';box.className='test-box warn';box.textContent='Testando...';
-  try{const r=await fetch('/api/testar-telegram',{method:'POST'});
-    if(r.ok){box.className='test-box ok';box.textContent='✅ Mensagem de teste enviada no Telegram!';document.getElementById('tg-status').className='sbadge ok';document.getElementById('tg-status').textContent='✓ Conectado';}
-    else{box.className='test-box err';box.textContent='❌ Falha — verifique o token e channel ID no Railway';document.getElementById('tg-status').className='sbadge err';document.getElementById('tg-status').textContent='✗ Erro';}}
-  catch{box.className='test-box err';box.textContent='❌ Endpoint /api/testar-telegram não disponível nesta versão';}
+  const token=document.getElementById('tg-token').value.trim();
+  const channel=document.getElementById('tg-channel').value.trim();
+  if(!token||!channel){box.style.display='block';box.className='test-box err';box.textContent='Preencha o token e o channel ID primeiro';return;}
+  box.style.display='block';box.className='test-box warn';box.textContent='Testando conexao...';
+  try{
+    const r=await fetch(`https://api.telegram.org/bot${token}/sendMessage`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:channel,text:'Radar Voos - teste de conexao OK! Bot @radarvoos_alertas_bot funcionando e pronto para enviar alertas de promocoes.'})
+    });
+    const j=await r.json();
+    if(j.ok){
+      box.className='test-box ok';box.textContent='Mensagem de teste enviada no Telegram!';
+      document.getElementById('tg-status').className='sbadge ok';document.getElementById('tg-status').textContent='Conectado';
+    }else{
+      box.className='test-box err';box.textContent='Erro: '+j.description;
+      document.getElementById('tg-status').className='sbadge err';document.getElementById('tg-status').textContent='Erro';
+    }
+  }catch(e){box.className='test-box err';box.textContent='Erro: '+e.message;}
 }
 async function testWa(){
   const box=document.getElementById('wa-result');
