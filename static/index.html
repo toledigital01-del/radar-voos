@@ -256,8 +256,8 @@ select.inp{-webkit-appearance:none;appearance:none;background-image:url("data:im
     <button class="btn-g" onclick="verifyAll()">🔍 Verificar todas as rotas</button>
   </div>
   <div class="srp-row">
-    <div class="sf ac-wrap"><div class="sflbl">Origem</div><input class="inp" id="i-orig" placeholder="POA ou Porto Alegre" autocomplete="off" oninput="acFilter('i-orig','drop-io')" onfocus="acFilter('i-orig','drop-io')" onkeydown="acKey(event,'drop-io','i-orig')"><div class="ac-drop" id="drop-io"></div></div>
-    <div class="sf ac-wrap"><div class="sflbl">Destino</div><input class="inp" id="i-dest" placeholder="GRU ou São Paulo" autocomplete="off" oninput="acFilter('i-dest','drop-id')" onfocus="acFilter('i-dest','drop-id')" onkeydown="acKey(event,'drop-id','i-dest')"><div class="ac-drop" id="drop-id"></div></div>
+    <div class="sf ac-wrap"><div class="sflbl">Origem</div><input class="inp" id="i-orig" placeholder="POA, GRU, Porto Alegre..." autocomplete="off" oninput="acFilter('i-orig','drop-io')" onkeydown="acKey(event,'drop-io','i-orig')" onblur="setTimeout(()=>document.getElementById('drop-io').classList.remove('open'),200)"><div class="ac-drop" id="drop-io"></div></div>
+    <div class="sf ac-wrap"><div class="sflbl">Destino</div><input class="inp" id="i-dest" placeholder="LIS, CDG, Lisboa..." autocomplete="off" oninput="acFilter('i-dest','drop-id')" onkeydown="acKey(event,'drop-id','i-dest')" onblur="setTimeout(()=>document.getElementById('drop-id').classList.remove('open'),200)"><div class="ac-drop" id="drop-id"></div></div>
     <div class="sf" style="flex:1.4"><div class="sflbl">Data</div><input class="inp" id="i-date" type="date"></div>
     <button class="btn-p" onclick="doSearch()">🔎 Buscar preço</button>
   </div>
@@ -440,9 +440,9 @@ select.inp{-webkit-appearance:none;appearance:none;background-image:url("data:im
     <div class="cfg-ttl">🗺️ Rotas Monitoradas</div>
     <div class="cfg-sub">Adicione pares de origem/destino para monitorar preços automaticamente</div>
     <div style="display:flex;gap:8px;align-items:flex-end">
-      <div class="sf ac-wrap" style="flex:1"><div class="sflbl">Origem</div><input class="inp" id="r-orig" placeholder="POA ou Porto Alegre" autocomplete="off" oninput="acFilter('r-orig','drop-ro')" onfocus="acFilter('r-orig','drop-ro')" onkeydown="acKey(event,'drop-ro','r-orig')"><div class="ac-drop" id="drop-ro"></div></div>
+      <div class="sf ac-wrap" style="flex:1"><div class="sflbl">Origem</div><input class="inp" id="r-orig" placeholder="POA, GRU, Porto Alegre..." autocomplete="off" oninput="acFilter('r-orig','drop-ro')" onkeydown="acKey(event,'drop-ro','r-orig')" onblur="setTimeout(()=>document.getElementById('drop-ro').classList.remove('open'),200)"><div class="ac-drop" id="drop-ro"></div></div>
       <div style="color:var(--muted);padding-bottom:10px;font-size:16px">→</div>
-      <div class="sf ac-wrap" style="flex:1"><div class="sflbl">Destino</div><input class="inp" id="r-dest" placeholder="GRU ou São Paulo" autocomplete="off" oninput="acFilter('r-dest','drop-rd')" onfocus="acFilter('r-dest','drop-rd')" onkeydown="acKey(event,'drop-rd','r-dest')"><div class="ac-drop" id="drop-rd"></div></div>
+      <div class="sf ac-wrap" style="flex:1"><div class="sflbl">Destino</div><input class="inp" id="r-dest" placeholder="GRU, LIS, São Paulo..." autocomplete="off" oninput="acFilter('r-dest','drop-rd')" onkeydown="acKey(event,'drop-rd','r-dest')" onblur="setTimeout(()=>document.getElementById('drop-rd').classList.remove('open'),200)"><div class="ac-drop" id="drop-rd"></div></div>
       <button class="btn-p" style="font-size:11px;padding:8px 14px" onclick="addRota()">+ Adicionar</button>
     </div>
     <div class="rota-list" id="cfg-rotas">
@@ -739,12 +739,28 @@ function acSelect(inputId,dropId,code){
 
 function acKey(e,dropId,inputId){
   const drop=document.getElementById(dropId);
+  if(!drop.classList.contains('open')) return;
   const items=[...drop.querySelectorAll('.ac-item')];
   const cur=items.findIndex(i=>i.classList.contains('hl'));
-  if(e.key==='ArrowDown'){e.preventDefault();const n=cur<items.length-1?cur+1:0;items.forEach(i=>i.classList.remove('hl'));if(items[n])items[n].classList.add('hl');}
-  else if(e.key==='ArrowUp'){e.preventDefault();const n=cur>0?cur-1:items.length-1;items.forEach(i=>i.classList.remove('hl'));if(items[n])items[n].classList.add('hl');}
-  else if(e.key==='Enter'){e.preventDefault();const hl=drop.querySelector('.ac-item.hl');if(hl){acSelect(inputId,dropId,hl.dataset.code);}else{const first=drop.querySelector('.ac-item');if(first)acSelect(inputId,dropId,first.dataset.code);}}
-  else if(e.key==='Escape'){drop.classList.remove('open');}
+  if(e.key==='ArrowDown'){
+    e.preventDefault();
+    const n=cur<items.length-1?cur+1:0;
+    items.forEach(i=>i.classList.remove('hl'));
+    if(items[n])items[n].classList.add('hl');
+  } else if(e.key==='ArrowUp'){
+    e.preventDefault();
+    const n=cur>0?cur-1:items.length-1;
+    items.forEach(i=>i.classList.remove('hl'));
+    if(items[n])items[n].classList.add('hl');
+  } else if(e.key==='Enter'){
+    // Só seleciona se o usuário explicitamente navegou com setas e destacou um item
+    const hl=drop.querySelector('.ac-item.hl');
+    if(hl){e.preventDefault();acSelect(inputId,dropId,hl.dataset.code);}
+    // Sem item destacado: Enter fecha o dropdown mas não interfere com o texto digitado
+    else{drop.classList.remove('open');}
+  } else if(e.key==='Escape'){
+    drop.classList.remove('open');
+  }
 }
 
 // Fechar dropdowns ao clicar fora
@@ -816,9 +832,12 @@ function renderCfgRotas(rotas){
 }
 
 async function addRota(){
-  const o=document.getElementById('r-orig').value.trim().toUpperCase();
-  const d=document.getElementById('r-dest').value.trim().toUpperCase();
-  if(o.length<3||d.length<3){showToast('Códigos IATA precisam ter 3 letras',false);return;}
+  // Aceita tanto "POA" quanto "Porto Alegre / Salgado Filho" — extrai o código IATA do início
+  const rawO=document.getElementById('r-orig').value.trim();
+  const rawD=document.getElementById('r-dest').value.trim();
+  const o=(rawO.match(/^([A-Za-z]{3,4})/)||[,''])[1].toUpperCase();
+  const d=(rawD.match(/^([A-Za-z]{3,4})/)||[,''])[1].toUpperCase();
+  if(o.length<3||d.length<3){showToast('Selecione um aeroporto da lista ou digite o código IATA (ex: POA)',false);return;}
   if(o===d){showToast('Origem e destino não podem ser iguais',false);return;}
   try{
     const r=await fetch('/api/config/rotas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({origem:o,destino:d})});
