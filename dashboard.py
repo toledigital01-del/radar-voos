@@ -1122,10 +1122,39 @@ def toggle_assinante(id: int):
 # API — Ações / Testes
 # ══════════════════════════════════════════════════════════════════════════════
 
+@app.get("/api/config/channels")
+def get_channels_config():
+    from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHANNEL_ID, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM, EMAIL_FROM
+    return {
+        "telegram": {
+            "token": TELEGRAM_BOT_TOKEN or "",
+            "channel_id": TELEGRAM_CHANNEL_ID or "",
+            "configured": bool(TELEGRAM_BOT_TOKEN and TELEGRAM_CHANNEL_ID),
+        },
+        "whatsapp": {
+            "sid": TWILIO_ACCOUNT_SID or "",
+            "auth_token": TWILIO_AUTH_TOKEN or "",
+            "from_number": TWILIO_WHATSAPP_FROM or "",
+            "to_number": os.getenv("TWILIO_WHATSAPP_TO", ""),
+            "configured": bool(TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN),
+        },
+        "email": {
+            "from_addr": EMAIL_FROM or "",
+            "configured": bool(EMAIL_FROM),
+        },
+    }
+
+
 @app.post("/api/testar-telegram")
 def testar_telegram():
-    from src.alerts.telegram import enviar_telegram
-    from config import now_brasilia
+    import requests as _req
+    from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHANNEL_ID, now_brasilia
+
+    if not TELEGRAM_BOT_TOKEN:
+        raise HTTPException(status_code=400, detail="TELEGRAM_BOT_TOKEN não configurado no .env")
+    if not TELEGRAM_CHANNEL_ID:
+        raise HTTPException(status_code=400, detail="TELEGRAM_CHANNEL_ID não configurado no .env")
+
     hora = now_brasilia().strftime("%d/%m/%Y %H:%M")
     msg = (
         "✅ *Radar Voos — Teste de Conexão*\n\n"
@@ -1133,10 +1162,64 @@ def testar_telegram():
         "📡 Bot conectado e funcionando!\n"
         "🔔 Você receberá alertas de promoções aqui."
     )
-    ok = enviar_telegram(msg)
-    if ok:
-        return {"ok": True, "msg": "Mensagem de teste enviada no Telegram!"}
-    raise HTTPException(status_code=500, detail="Falha ao enviar — verifique TELEGRAM_BOT_TOKEN e TELEGRAM_CHANNEL_ID no Railway")
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    try:
+        r = _req.post(url, json={
+            "chat_id": TELEGRAM_CHANNEL_ID,
+            "text": msg,
+            "parse_mode": "Markdown",
+            "disable_web_page_preview": True,
+        }, timeout=10)
+        data = r.json()
+        if data.get("ok"):
+            return {"ok": True, "msg": "Mensagem de teste enviada com sucesso!"}
+        raise HTTPException(status_code=400, detail=data.get("description", f"Erro Telegram HTTP {r.status_code}"))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro de conexão: {e}")
+
+
+@app.post("/api/testar-alerta")
+def testar_alerta():
+    import requests as _req
+    from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHANNEL_ID
+    from src.scheduler.jobs import formatar_alerta, _link_compra
+    from config import now_brasilia
+
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHANNEL_ID:
+        raise HTTPException(status_code=400, detail="TELEGRAM_BOT_TOKEN ou TELEGRAM_CHANNEL_ID não configurados no .env")
+
+    voo_simulado = {
+        "origem": "POA",
+        "destino": "GIG",
+        "preco": 287.0,
+        "companhia": "LATAM",
+        "paradas": 0,
+        "data_voo": (datetime.utcnow() + timedelta(days=45)).strftime("%Y-%m-%d"),
+    }
+    preco_medio = 890.0
+    desconto_pct = round((preco_medio - voo_simulado["preco"]) / preco_medio * 100)
+
+    msg = formatar_alerta(voo_simulado, preco_medio, desconto_pct)
+    msg += f"\n\n_⚠️ Esta é uma mensagem de teste — {now_brasilia().strftime('%d/%m/%Y %H:%M')}_"
+
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    try:
+        r = _req.post(url, json={
+            "chat_id": TELEGRAM_CHANNEL_ID,
+            "text": msg,
+            "parse_mode": "Markdown",
+            "disable_web_page_preview": True,
+        }, timeout=10)
+        data = r.json()
+        if data.get("ok"):
+            return {"ok": True, "msg": f"Alerta simulado enviado! POA→GIG R$287 ({desconto_pct}% off)"}
+        raise HTTPException(status_code=400, detail=data.get("description", f"Erro Telegram HTTP {r.status_code}"))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro de conexão: {e}")
 
 
 @app.post("/api/verificar")

@@ -335,6 +335,7 @@ select.inp{-webkit-appearance:none;appearance:none;background-image:url("data:im
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <button class="btn-p" style="font-size:11px;padding:7px 14px" onclick="saveTg()">💾 Salvar</button>
         <button class="btn-g" style="font-size:11px;padding:7px 14px" onclick="testTg()">📨 Testar conexão</button>
+        <button class="btn-g" style="font-size:11px;padding:7px 14px;border-color:rgba(245,158,11,.4);color:#f59e0b" onclick="testAlerta()">✈️ Simular alerta</button>
         <div class="test-box" id="tg-result"></div>
       </div>
       <div style="font-size:10px;color:var(--muted);margin-top:10px">
@@ -823,6 +824,27 @@ async function loadCfgPage(){
   if(c.em_sgkey) document.getElementById('em-sgkey').value=c.em_sgkey;
   if(c.em_from) document.getElementById('em-from').value=c.em_from;
   if(c.em_to) document.getElementById('em-to').value=c.em_to;
+
+  // Sobrescreve com valores do .env (fonte autoritativa)
+  try{
+    const ch=await fetch('/api/config/channels').then(r=>r.json());
+    if(ch.telegram){
+      if(ch.telegram.token) document.getElementById('tg-token').value=ch.telegram.token;
+      if(ch.telegram.channel_id) document.getElementById('tg-channel').value=ch.telegram.channel_id;
+      if(ch.telegram.configured) toggleCh('tg',true);
+    }
+    if(ch.whatsapp){
+      if(ch.whatsapp.sid) document.getElementById('wa-sid').value=ch.whatsapp.sid;
+      if(ch.whatsapp.auth_token) document.getElementById('wa-token').value=ch.whatsapp.auth_token;
+      if(ch.whatsapp.from_number) document.getElementById('wa-from').value=ch.whatsapp.from_number;
+      if(ch.whatsapp.to_number) document.getElementById('wa-to').value=ch.whatsapp.to_number;
+      if(ch.whatsapp.configured) toggleCh('wa',true);
+    }
+    if(ch.email){
+      if(ch.email.from_addr) document.getElementById('em-from').value=ch.email.from_addr;
+      if(ch.email.configured) toggleCh('em',true);
+    }
+  }catch(e){}
 }
 
 function renderCfgRotas(rotas){
@@ -905,24 +927,32 @@ function saveEmail(){
 /* ── CHANNEL TEST ── */
 async function testTg(){
   const box=document.getElementById('tg-result');
-  const token=document.getElementById('tg-token').value.trim();
-  const channel=document.getElementById('tg-channel').value.trim();
-  if(!token||!channel){box.style.display='block';box.className='test-box err';box.textContent='Preencha o token e o channel ID primeiro';return;}
-  box.style.display='block';box.className='test-box warn';box.textContent='Testando conexao...';
+  box.style.display='block';box.className='test-box warn';box.textContent='Testando conexão...';
   try{
-    const r=await fetch(`https://api.telegram.org/bot${token}/sendMessage`,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({chat_id:channel,text:'Radar Voos - teste de conexao OK! Bot @radarvoos_alertas_bot funcionando e pronto para enviar alertas de promocoes.'})
-    });
+    const r=await fetch('/api/testar-telegram',{method:'POST'});
     const j=await r.json();
-    if(j.ok){
-      box.className='test-box ok';box.textContent='Mensagem de teste enviada no Telegram!';
-      document.getElementById('tg-status').className='sbadge ok';document.getElementById('tg-status').textContent='Conectado';
+    if(r.ok&&j.ok){
+      box.className='test-box ok';box.textContent='✅ '+j.msg;
+      document.getElementById('tg-status').className='sbadge ok';document.getElementById('tg-status').textContent='✅ Conectado';
     }else{
-      box.className='test-box err';box.textContent='Erro: '+j.description;
-      document.getElementById('tg-status').className='sbadge err';document.getElementById('tg-status').textContent='Erro';
+      const err=j.detail||j.error||'Falha desconhecida';
+      box.className='test-box err';box.textContent='❌ '+err;
+      document.getElementById('tg-status').className='sbadge err';document.getElementById('tg-status').textContent='❌ Erro';
     }
-  }catch(e){box.className='test-box err';box.textContent='Erro: '+e.message;}
+  }catch(e){box.className='test-box err';box.textContent='❌ Erro: '+e.message;}
+}
+async function testAlerta(){
+  const box=document.getElementById('tg-result');
+  box.style.display='block';box.className='test-box warn';box.textContent='Enviando alerta simulado...';
+  try{
+    const r=await fetch('/api/testar-alerta',{method:'POST'});
+    const j=await r.json();
+    if(r.ok&&j.ok){
+      box.className='test-box ok';box.textContent='✅ '+j.msg;
+    }else{
+      box.className='test-box err';box.textContent='❌ '+(j.detail||j.error||'Falha desconhecida');
+    }
+  }catch(e){box.className='test-box err';box.textContent='❌ Erro: '+e.message;}
 }
 async function testWa(){
   const box=document.getElementById('wa-result');

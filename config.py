@@ -1,8 +1,16 @@
 import os
 import json
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 
 load_dotenv()
+
+BRASILIA = ZoneInfo("America/Sao_Paulo")
+
+
+def now_brasilia() -> datetime:
+    return datetime.now(BRASILIA)
 
 # SerpApi — Google Flights (cadastro em serpapi.com)
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")

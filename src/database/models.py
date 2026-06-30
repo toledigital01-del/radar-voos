@@ -3,8 +3,7 @@ from sqlalchemy import (
     Float, DateTime, Boolean, Text
 )
 from sqlalchemy.orm import declarative_base, sessionmaker
-from datetime import datetime
-from config import DATABASE_URL
+from config import DATABASE_URL, now_brasilia
 
 Base = declarative_base()
 engine = create_engine(
@@ -28,7 +27,7 @@ class HistoricoPreco(Base):
     companhia = Column(String(10))
     paradas = Column(Integer, default=0)
     data_voo = Column(String(10))
-    capturado_em = Column(DateTime, default=datetime.utcnow)
+    capturado_em = Column(DateTime, default=now_brasilia)
 
 
 class Alerta(Base):
@@ -44,7 +43,7 @@ class Alerta(Base):
     companhia = Column(String(10))
     data_voo = Column(String(10))
     link_compra = Column(Text)
-    enviado_em = Column(DateTime, default=datetime.utcnow)
+    enviado_em = Column(DateTime, default=now_brasilia)
 
 
 class Assinante(Base):
@@ -56,7 +55,7 @@ class Assinante(Base):
     canal = Column(String(20))       # telegram | whatsapp | email
     contato = Column(String(200))    # @usuario | +5511... | email@
     ativo = Column(Boolean, default=True)
-    criado_em = Column(DateTime, default=datetime.utcnow)
+    criado_em = Column(DateTime, default=now_brasilia)
 
 
 def criar_tabelas():
