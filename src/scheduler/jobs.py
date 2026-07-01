@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from config import ROTAS_MONITORADAS, DIAS_ANTECEDENCIA, THRESHOLD_DESCONTO, CITY_GROUPS
+from config import CITY_GROUPS
 from src.scrapers.amadeus import buscar_voos, gerar_datas_monitoramento
 from src.database.queries import (
     salvar_preco, media_preco, alerta_recente, salvar_alerta, listar_assinantes,
@@ -11,6 +11,22 @@ from src.alerts.email import enviar_email
 from src.logger import get_logger
 
 log = get_logger()
+
+
+def _cfg():
+    """Lê user_config.json sempre fresco — nunca usa cache do startup."""
+    import json, os
+    from config import USER_CONFIG_PATH, _DEFAULTS
+    if os.path.exists(USER_CONFIG_PATH):
+        with open(USER_CONFIG_PATH, "r", encoding="utf-8") as f:
+            uc = json.load(f)
+    else:
+        uc = {}
+    return {
+        "rotas": uc.get("rotas", _DEFAULTS["rotas"]),
+        "dias_antecedencia": uc.get("dias_antecedencia", _DEFAULTS["dias_antecedencia"]),
+        "threshold_desconto": uc.get("threshold_desconto", _DEFAULTS["threshold_desconto"]),
+    }
 
 
 def expandir_rotas(rotas: list) -> list:
@@ -82,13 +98,18 @@ def ciclo_monitoramento():
     log.info("Iniciando ciclo de monitoramento")
     log.info("═" * 50)
 
-    datas = gerar_datas_monitoramento(DIAS_ANTECEDENCIA)
-    rotas_expandidas = expandir_rotas(ROTAS_MONITORADAS)
+    cfg = _cfg()
+    rotas_monitoradas = cfg["rotas"]
+    dias_antecedencia = cfg["dias_antecedencia"]
+    threshold_desconto = cfg["threshold_desconto"]
+
+    datas = gerar_datas_monitoramento(dias_antecedencia)
+    rotas_expandidas = expandir_rotas(rotas_monitoradas)
     total_alertas = 0
 
     log.info(
         "%d rota(s) base → %d par(es) de aeroportos × %d data(s) = %d chamadas",
-        len(ROTAS_MONITORADAS), len(rotas_expandidas), len(datas),
+        len(rotas_monitoradas), len(rotas_expandidas), len(datas),
         len(rotas_expandidas) * len(datas),
     )
 
@@ -107,7 +128,7 @@ def ciclo_monitoramento():
                     continue
 
                 queda = (media - voo["preco"]) / media
-                if queda >= THRESHOLD_DESCONTO:
+                if queda >= threshold_desconto:
                     if alerta_recente(origem, destino, horas=6):
                         log.info("Alerta recente para %s→%s, pulando (anti-spam)", origem, destino)
                         continue
