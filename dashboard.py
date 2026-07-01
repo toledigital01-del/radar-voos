@@ -44,6 +44,22 @@ def startup():
     except Exception as e:
         print(f"DB startup warning: {e}")
 
+    # Garante que a config está no banco ANTES do scheduler iniciar
+    try:
+        from src.database.queries import get_config_db, set_config_db
+        db_cfg = get_config_db()
+        if not db_cfg:
+            if os.path.exists(USER_CONFIG_PATH):
+                with open(USER_CONFIG_PATH, "r", encoding="utf-8") as f:
+                    file_cfg = json.load(f)
+                set_config_db(file_cfg)
+                print(f"[Config] Migrado user_config.json → banco de dados")
+            else:
+                set_config_db(_DEFAULTS)
+                print(f"[Config] Defaults salvos no banco de dados")
+    except Exception as e:
+        print(f"[Config] Erro na migração inicial: {e}")
+
     # Inicia scheduler em background thread (substitui main.py no Railway)
     import threading, schedule as _sched, time as _time
     from src.scheduler.jobs import ciclo_monitoramento
