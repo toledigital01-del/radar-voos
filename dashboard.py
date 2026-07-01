@@ -44,6 +44,27 @@ def startup():
     except Exception as e:
         print(f"DB startup warning: {e}")
 
+    # Inicia scheduler em background thread (substitui main.py no Railway)
+    import threading, schedule as _sched, time as _time
+    from src.scheduler.jobs import ciclo_monitoramento
+    from config import INTERVALO_HORAS
+
+    def _scheduler_loop():
+        try:
+            print(f"[Scheduler] Iniciando — ciclo a cada {INTERVALO_HORAS}h")
+            ciclo_monitoramento()
+        except Exception as e:
+            print(f"[Scheduler] Erro no ciclo inicial: {e}")
+        _sched.every(INTERVALO_HORAS).hours.do(ciclo_monitoramento)
+        while True:
+            try:
+                _sched.run_pending()
+            except Exception as e:
+                print(f"[Scheduler] Erro: {e}")
+            _time.sleep(60)
+
+    threading.Thread(target=_scheduler_loop, daemon=True).start()
+
 # ══════════════════════════════════════════════════════════════════════════════
 # Banco de aeroportos — fonte única de verdade para HTML e JS
 # ══════════════════════════════════════════════════════════════════════════════
