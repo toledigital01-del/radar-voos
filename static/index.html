@@ -391,8 +391,12 @@ tbody tr:last-child td{border-bottom:none}
           <div class="ac-hint" id="h-s-dst"></div>
         </div>
         <div class="sf">
-          <div class="sf-lbl">Data</div>
+          <div class="sf-lbl">Data Ida</div>
           <input class="inp-plain" id="s-dt" type="date">
+        </div>
+        <div class="sf">
+          <div class="sf-lbl">Data Volta</div>
+          <input class="inp-plain" id="s-dt-volta" type="date">
         </div>
         <button class="btn-p" onclick="verificar()">🔍 Buscar preço</button>
       </div>
@@ -407,7 +411,7 @@ tbody tr:last-child td{border-bottom:none}
         </div>
         <table>
           <thead>
-            <tr><th>Rota</th><th>Preço</th><th>Companhia</th><th>Paradas</th><th>Data do Voo</th><th></th></tr>
+            <tr><th>Rota</th><th>Tipo</th><th>Preço</th><th>Companhia</th><th>Paradas</th><th>Ida</th><th>Volta</th><th></th></tr>
           </thead>
           <tbody id="busca-tbody"></tbody>
         </table>
@@ -508,6 +512,19 @@ tbody tr:last-child td{border-bottom:none}
           <div class="plbl">Desconto mínimo para alerta <span class="pval" id="thr-v">30%</span></div>
           <input class="slider" type="range" id="thr" min="5" max="60" step="5" value="30"
             oninput="document.getElementById('thr-v').textContent=this.value+'%'">
+        </div>
+
+        <div class="pg">
+          <div class="plbl">Duração da viagem (dias de estadia)</div>
+          <select class="sel" id="dur-sel">
+            <option value="3">3 dias</option>
+            <option value="5">5 dias</option>
+            <option value="7" selected>7 dias</option>
+            <option value="10">10 dias</option>
+            <option value="14">14 dias</option>
+            <option value="21">21 dias</option>
+            <option value="30">30 dias</option>
+          </select>
         </div>
 
         <div class="pg">
@@ -863,11 +880,12 @@ async function verificar(){
     const btn=document.querySelector('.serp-form .btn-p');
     const orig=btn.innerHTML; btn.innerHTML='<span class="spin"></span> Buscando...'; btn.disabled=true;
     try{
+      const dtVolta=document.getElementById('s-dt-volta').value;
       const r=await fetch('/api/buscar',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({origem:ori,destino:dst,data:dt})});
+        body:JSON.stringify({origem:ori,destino:dst,data:dt,data_volta:dtVolta})});
       const j=await r.json();
       if(r.ok){
-        _renderBuscaResults(j, ori, dst, dt);
+        _renderBuscaResults(j, ori, dst, dt, dtVolta);
         showToast(j.total>0?`✅ ${j.total} voo(s) encontrado(s)`:'⚠️ Nenhum voo encontrado para essa rota/data');
         if(j.total>0) setTimeout(loadDash,1500);
       }else{showToast('❌ '+(j.detail||'Erro na busca'),false);}
@@ -879,29 +897,32 @@ async function verificar(){
   }
 }
 
-function _renderBuscaResults(j, ori, dst, dt){
+function _renderBuscaResults(j, ori, dst, dt, dtVolta){
   const box=document.getElementById('busca-results');
   const ttl=document.getElementById('busca-ttl');
   const tbody=document.getElementById('busca-tbody');
 
-  ttl.textContent=`🔍 RESULTADOS: ${ori} → ${dst}  ·  ${dt||'hoje'}  (${j.total} voo${j.total!==1?'s':''})`;
+  const voltaStr=dtVolta?` → ${dtVolta}`:'';
+  ttl.textContent=`🔍 RESULTADOS: ${ori} → ${dst}  ·  ${dt||'hoje'}${voltaStr}  (${j.total} voo${j.total!==1?'s':''})`;
 
   if(!j.total){
-    tbody.innerHTML='<tr><td colspan="5" class="empty-c">Nenhum voo encontrado para essa rota e data</td></tr>';
+    tbody.innerHTML='<tr><td colspan="8" class="empty-c">Nenhum voo encontrado para essa rota e data</td></tr>';
   }else{
-    // ordena por preço
     const sorted=[...j.resultados].sort((a,b)=>a.preco-b.preco);
     const minP=sorted[0].preco;
     tbody.innerHTML=sorted.map(v=>{
       const isBest=v.preco===minP;
       const paradas=v.paradas===0?'<span class="tdisc green">Direto</span>':`<span style="color:var(--text2)">${v.paradas} escala(s)</span>`;
+      const tipoLabel=v.tipo_viagem==='ida_volta'?'<span style="color:var(--teal);font-size:10px;font-weight:600">↔ Ida+Volta</span>':'<span style="color:var(--text2);font-size:10px">→ Somente Ida</span>';
       const link=`https://www.google.com/travel/flights?q=voos+de+${v.origem}+para+${v.destino}+em+${v.data_voo||dt}&hl=pt-BR&curr=BRL`;
       return`<tr>
         <td><div class="td-rt">${v.origem}<span class="sep">→</span>${v.destino}</div></td>
+        <td>${tipoLabel}</td>
         <td class="${isBest?'td-deal':'td-normal'}" style="font-weight:700">${R(v.preco)}${isBest?' <span style="font-size:10px;color:var(--green)">● menor</span>':''}</td>
         <td class="td-co">${v.companhia||'—'}</td>
         <td>${paradas}</td>
         <td class="td-ago">${v.data_voo||'—'}</td>
+        <td class="td-ago">${v.data_volta||'—'}</td>
         <td><a href="${link}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;background:var(--purple);color:#fff;padding:5px 12px;border-radius:7px;font-size:11px;font-weight:600;text-decoration:none;transition:.15s;white-space:nowrap" onmouseover="this.style.background='var(--purple2)'" onmouseout="this.style.background='var(--purple)'">🛒 Ver passagem</a></td>
       </tr>`;
     }).join('');
@@ -925,6 +946,7 @@ async function loadConfig(){
     document.getElementById('thr').value=thr;
     document.getElementById('thr-v').textContent=thr+'%';
     document.getElementById('int-sel').value=cfg.intervalo_horas||4;
+    document.getElementById('dur-sel').value=cfg.duracao_dias||7;
     renderRoutes(cfg.rotas||[]);
 
     if(ch.telegram){
@@ -1003,6 +1025,7 @@ async function saveSettings(){
     dias_antecedencia:dias,
     threshold_desconto:parseInt(document.getElementById('thr').value)/100,
     intervalo_horas:parseInt(document.getElementById('int-sel').value),
+    duracao_dias:parseInt(document.getElementById('dur-sel').value),
   })});
   if(r.ok) showToast('✅ Configurações salvas! Reinicie o servidor para aplicar.');
   else showToast('Erro ao salvar',false);

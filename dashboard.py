@@ -44,6 +44,22 @@ def startup():
     except Exception as e:
         print(f"DB startup warning: {e}")
 
+    # Migra colunas novas em tabelas existentes (idempotente)
+    try:
+        from sqlalchemy import inspect as _inspect, text as _text
+        from src.database.models import engine as _engine
+        _inspector = _inspect(_engine)
+        _hp_cols = [c["name"] for c in _inspector.get_columns("historico_precos")]
+        with _engine.connect() as _conn:
+            if "data_volta" not in _hp_cols:
+                _conn.execute(_text("ALTER TABLE historico_precos ADD COLUMN data_volta VARCHAR(10)"))
+                _conn.commit()
+            if "tipo_viagem" not in _hp_cols:
+                _conn.execute(_text("ALTER TABLE historico_precos ADD COLUMN tipo_viagem VARCHAR(10) DEFAULT 'ida'"))
+                _conn.commit()
+    except Exception as e:
+        print(f"[Migration] colunas: {e}")
+
     # Garante que a config está no banco ANTES do scheduler iniciar
     try:
         from src.database.queries import get_config_db, set_config_db
@@ -357,6 +373,7 @@ class Settings(BaseModel):
     dias_antecedencia: List[int]
     threshold_desconto: float
     intervalo_horas: int
+    duracao_dias: int = 7
 
 class NovoAssinante(BaseModel):
     nome: str
@@ -1105,6 +1122,7 @@ def save_settings(s: Settings):
     cfg["dias_antecedencia"] = sorted(s.dias_antecedencia)
     cfg["threshold_desconto"] = round(s.threshold_desconto, 2)
     cfg["intervalo_horas"] = s.intervalo_horas
+    cfg["duracao_dias"] = s.duracao_dias
     _write_config(cfg)
     return cfg
 
@@ -1281,6 +1299,7 @@ class BuscarParams(BaseModel):
     origem: str
     destino: str
     data: str = ""
+    data_volta: str = ""
 
 @app.post("/api/buscar")
 def buscar_rota(p: BuscarParams):
@@ -1296,12 +1315,13 @@ def buscar_rota(p: BuscarParams):
         raise HTTPException(status_code=400, detail="Origem e destino são obrigatórios")
 
     data = p.data or _date.today().isoformat()
+    data_volta = p.data_volta or None
     rotas = expandir_rotas([{"origem": origem, "destino": destino}])
 
     resultados = []
     for rota in rotas:
         try:
-            voos = buscar_voos(rota["origem"], rota["destino"], data)
+            voos = buscar_voos(rota["origem"], rota["destino"], data, data_volta)
             for v in voos:
                 salvar_preco(v)
             resultados.extend(voos)

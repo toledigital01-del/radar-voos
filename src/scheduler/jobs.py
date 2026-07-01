@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from config import CITY_GROUPS
 from src.scrapers.amadeus import buscar_voos, gerar_datas_monitoramento
@@ -22,6 +22,7 @@ def _cfg():
         "rotas": db_cfg.get("rotas", _DEFAULTS["rotas"]),
         "dias_antecedencia": db_cfg.get("dias_antecedencia", _DEFAULTS["dias_antecedencia"]),
         "threshold_desconto": db_cfg.get("threshold_desconto", _DEFAULTS["threshold_desconto"]),
+        "duracao_dias": db_cfg.get("duracao_dias", _DEFAULTS["duracao_dias"]),
     }
 
 
@@ -48,11 +49,15 @@ def _link_compra(origem: str, destino: str, data_voo: str) -> str:
 
 def formatar_alerta(voo: dict, preco_medio: float, desconto_pct: float) -> str:
     link = _link_compra(voo['origem'], voo['destino'], voo['data_voo'])
+    data_volta = voo.get('data_volta', '')
+    tipo = "Ida e Volta" if data_volta else "Somente Ida"
+    volta_linha = f"\n📅 Data volta: {data_volta}" if data_volta else ""
     return (
         f"✈️ *PROMOÇÃO DETECTADA!*\n\n"
         f"🗺️ Rota: *{voo['origem']} → {voo['destino']}*\n"
+        f"🎫 Tipo: {tipo}\n"
         f"💰 Preço: *R$ {voo['preco']:.0f}*\n"
-        f"📅 Data do voo: {voo['data_voo']}\n"
+        f"📅 Data ida: {voo['data_voo']}{volta_linha}\n"
         f"🏷️ Companhia: {voo['companhia']}\n"
         f"🛑 Paradas: {voo['paradas']}\n"
         f"📉 *{desconto_pct:.0f}% abaixo da média* (média: R$ {preco_medio:.0f})\n\n"
@@ -98,15 +103,16 @@ def ciclo_monitoramento():
     rotas_monitoradas = cfg["rotas"]
     dias_antecedencia = cfg["dias_antecedencia"]
     threshold_desconto = cfg["threshold_desconto"]
+    duracao_dias = cfg.get("duracao_dias", 7)
 
     datas = gerar_datas_monitoramento(dias_antecedencia)
     rotas_expandidas = expandir_rotas(rotas_monitoradas)
     total_alertas = 0
 
     log.info(
-        "%d rota(s) base → %d par(es) de aeroportos × %d data(s) = %d chamadas",
+        "%d rota(s) base → %d par(es) de aeroportos × %d data(s) = %d chamadas (ida+volta, %dd)",
         len(rotas_monitoradas), len(rotas_expandidas), len(datas),
-        len(rotas_expandidas) * len(datas),
+        len(rotas_expandidas) * len(datas), duracao_dias,
     )
 
     for rota in rotas_expandidas:
@@ -114,7 +120,8 @@ def ciclo_monitoramento():
         log.info("Monitorando %s → %s", origem, destino)
 
         for data in datas:
-            voos = buscar_voos(origem, destino, data)
+            data_volta = (datetime.strptime(data, "%Y-%m-%d") + timedelta(days=duracao_dias)).strftime("%Y-%m-%d")
+            voos = buscar_voos(origem, destino, data, data_volta)
 
             for voo in voos:
                 salvar_preco(voo)

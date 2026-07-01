@@ -54,6 +54,7 @@ _DEFAULTS = {
     "dias_antecedencia": [30, 60, 90, 120],
     "threshold_desconto": 0.30,
     "intervalo_horas": 1,
+    "duracao_dias": 7,
 }
 
 USER_CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "user_config.json")

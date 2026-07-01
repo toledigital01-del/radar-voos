@@ -27,6 +27,8 @@ class HistoricoPreco(Base):
     companhia = Column(String(10))
     paradas = Column(Integer, default=0)
     data_voo = Column(String(10))
+    data_volta = Column(String(10))
+    tipo_viagem = Column(String(10), default="ida")
     capturado_em = Column(DateTime, default=now_brasilia)
 
 

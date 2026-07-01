@@ -14,7 +14,8 @@ log = get_logger()
 SERPAPI_URL = "https://serpapi.com/search"
 
 
-def buscar_voos(origem: str, destino: str, data: str) -> list:
+def buscar_voos(origem: str, destino: str, data: str, data_volta: str = None) -> list:
+    tipo = "1" if data_volta else "2"
     params = {
         "engine": "google_flights",
         "departure_id": origem,
@@ -22,9 +23,11 @@ def buscar_voos(origem: str, destino: str, data: str) -> list:
         "outbound_date": data,
         "currency": "BRL",
         "hl": "pt",
-        "type": "2",
+        "type": tipo,
         "api_key": SERPAPI_KEY,
     }
+    if data_volta:
+        params["return_date"] = data_volta
 
     try:
         r = requests.get(SERPAPI_URL, params=params, timeout=20)
@@ -51,6 +54,8 @@ def buscar_voos(origem: str, destino: str, data: str) -> list:
                     "companhia": companhia[:10],
                     "paradas": max(paradas, 0),
                     "data_voo": data,
+                    "data_volta": data_volta or "",
+                    "tipo_viagem": "ida_volta" if data_volta else "ida",
                 })
 
         log.info("%s→%s %s: %d oferta(s)", origem, destino, data, len(resultados))
