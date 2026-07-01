@@ -398,6 +398,22 @@ tbody tr:last-child td{border-bottom:none}
       </div>
     </div>
 
+    <!-- Resultados da busca -->
+    <div id="busca-results" style="display:none;margin-bottom:14px">
+      <div class="tcrd">
+        <div class="tcrd-hdr">
+          <div class="crd-ttl" id="busca-ttl">🔍 RESULTADOS DA BUSCA</div>
+          <button class="btn-g" style="padding:5px 12px;font-size:11px" onclick="document.getElementById('busca-results').style.display='none'">✕ Fechar</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Rota</th><th>Preço</th><th>Companhia</th><th>Paradas</th><th>Data do Voo</th></tr>
+          </thead>
+          <tbody id="busca-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- Chart + Alerts -->
     <div class="two-col">
       <div class="chart-card">
@@ -848,8 +864,9 @@ async function verificar(){
         body:JSON.stringify({origem:ori,destino:dst,data:dt})});
       const j=await r.json();
       if(r.ok){
-        showToast(j.total>0?`✅ ${j.total} voo(s) encontrado(s) em ${j.rotas_buscadas.join(', ')}`:'⚠️ Nenhum voo encontrado para essa rota/data');
-        if(j.total>0) setTimeout(loadDash,1200);
+        _renderBuscaResults(j, ori, dst, dt);
+        showToast(j.total>0?`✅ ${j.total} voo(s) encontrado(s)`:'⚠️ Nenhum voo encontrado para essa rota/data');
+        if(j.total>0) setTimeout(loadDash,1500);
       }else{showToast('❌ '+(j.detail||'Erro na busca'),false);}
     }catch(e){showToast('❌ '+e.message,false);}
     finally{btn.innerHTML=orig;btn.disabled=false;}
@@ -857,6 +874,36 @@ async function verificar(){
     showToast('Verificação completa iniciada em background...');
     try{await fetch('/api/verificar',{method:'POST'});}catch(e){}
   }
+}
+
+function _renderBuscaResults(j, ori, dst, dt){
+  const box=document.getElementById('busca-results');
+  const ttl=document.getElementById('busca-ttl');
+  const tbody=document.getElementById('busca-tbody');
+
+  ttl.textContent=`🔍 RESULTADOS: ${ori} → ${dst}  ·  ${dt||'hoje'}  (${j.total} voo${j.total!==1?'s':''})`;
+
+  if(!j.total){
+    tbody.innerHTML='<tr><td colspan="5" class="empty-c">Nenhum voo encontrado para essa rota e data</td></tr>';
+  }else{
+    // ordena por preço
+    const sorted=[...j.resultados].sort((a,b)=>a.preco-b.preco);
+    const minP=sorted[0].preco;
+    tbody.innerHTML=sorted.map(v=>{
+      const isBest=v.preco===minP;
+      const paradas=v.paradas===0?'<span class="tdisc green">Direto</span>':`<span style="color:var(--text2)">${v.paradas} escala(s)</span>`;
+      return`<tr>
+        <td><div class="td-rt">${v.origem}<span class="sep">→</span>${v.destino}</div></td>
+        <td class="${isBest?'td-deal':'td-normal'}" style="font-weight:700">${R(v.preco)}${isBest?' <span style="font-size:10px;color:var(--green)">● menor</span>':''}</td>
+        <td class="td-co">${v.companhia||'—'}</td>
+        <td>${paradas}</td>
+        <td class="td-ago">${v.data_voo||'—'}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  box.style.display='block';
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 // ── CONFIGURAÇÕES ─────────────────────────────────────────────────────────────
