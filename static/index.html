@@ -463,10 +463,90 @@ tbody tr:last-child td{border-bottom:none}
 <div class="page" id="page-config">
   <div class="wrap">
 
-    <div class="cfg-card">
+    <!-- 1. Rotas + Parâmetros -->
+    <div class="cfg2">
+      <div class="cfg-box">
+        <div class="sec-ttl">🗺️ Rotas Monitoradas</div>
+        <div class="route-add">
+          <div style="flex:1">
+            <div style="position:relative">
+              <input class="inp-plain" id="r-ori" placeholder="Cidade ou IATA (ex: RIO, POA)" autocomplete="off" style="width:100%">
+            </div>
+            <div class="ac-hint" id="h-r-ori"></div>
+          </div>
+          <span class="arr-sep" style="margin-top:9px">→</span>
+          <div style="flex:1">
+            <div style="position:relative">
+              <input class="inp-plain" id="r-dst" placeholder="Cidade ou IATA (ex: PAR, GIG)" autocomplete="off" style="width:100%">
+            </div>
+            <div class="ac-hint" id="h-r-dst"></div>
+          </div>
+          <button class="btn-p" style="padding:9px 16px;font-size:11px" onclick="addRota()">+ Adicionar</button>
+        </div>
+        <div class="route-ls" id="route-ls">
+          <div class="empty-c"><span class="spin"></span></div>
+        </div>
+      </div>
+
+      <div class="cfg-box">
+        <div class="sec-ttl">📊 Parâmetros de Busca</div>
+
+        <div class="pg">
+          <div class="plbl">Janela de datas (dias)</div>
+          <div class="day-chips">
+            <div class="dchip" data-v="7" onclick="toggleDay(this)">7</div>
+            <div class="dchip" data-v="14" onclick="toggleDay(this)">14</div>
+            <div class="dchip" data-v="30" onclick="toggleDay(this)">30</div>
+            <div class="dchip" data-v="60" onclick="toggleDay(this)">60</div>
+            <div class="dchip" data-v="90" onclick="toggleDay(this)">90</div>
+            <div class="dchip" data-v="120" onclick="toggleDay(this)">120</div>
+            <div class="dchip" data-v="180" onclick="toggleDay(this)">180</div>
+          </div>
+        </div>
+
+        <div class="pg">
+          <div class="plbl">Desconto mínimo para alerta <span class="pval" id="thr-v">30%</span></div>
+          <input class="slider" type="range" id="thr" min="5" max="60" step="5" value="30"
+            oninput="document.getElementById('thr-v').textContent=this.value+'%'">
+        </div>
+
+        <div class="pg">
+          <div class="plbl">Intervalo entre verificações</div>
+          <select class="sel" id="int-sel">
+            <option value="1">1h</option>
+            <option value="2">2h</option>
+            <option value="4" selected>4h</option>
+            <option value="6">6h</option>
+            <option value="12">12h</option>
+            <option value="24">24h</option>
+          </select>
+        </div>
+
+        <div class="tog-ls">
+          <div class="tog-row">
+            <span class="tog-lbl">Alertar para múltiplas companhias</span>
+            <label class="toggle"><input type="checkbox" id="tog1" checked><div class="tog-t"></div></label>
+          </div>
+          <div class="tog-row">
+            <span class="tog-lbl">Incluir voos com escala</span>
+            <label class="toggle"><input type="checkbox" id="tog2"><div class="tog-t"></div></label>
+          </div>
+          <div class="tog-row">
+            <span class="tog-lbl">Priorizar voos diretos</span>
+            <label class="toggle"><input type="checkbox" id="tog3" checked><div class="tog-t"></div></label>
+          </div>
+        </div>
+
+        <button class="btn-save" onclick="saveSettings()">💾 Salvar configurações</button>
+      </div>
+    </div>
+
+    <!-- 2. Canais de Notificação (no final, colapsados por padrão) -->
+    <div class="cfg-card" style="margin-top:14px">
       <div class="sec-ttl">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         Canais de Notificação
+        <span style="font-size:10px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">— clique em um canal para configurar</span>
       </div>
       <div class="ch-grid">
         <div class="ch-crd" id="ch-tg" onclick="toggleCh('tg')">
@@ -557,83 +637,6 @@ tbody tr:last-child td{border-bottom:none}
             <input class="inp-plain" id="em-from" placeholder="seu@email.com">
           </div>
         </div>
-      </div>
-    </div>
-
-    <div class="cfg2">
-      <div class="cfg-box">
-        <div class="sec-ttl">🗺️ Rotas Monitoradas</div>
-        <div class="route-add">
-          <div style="flex:1">
-            <div style="position:relative">
-              <input class="inp-plain" id="r-ori" placeholder="Cidade ou IATA (ex: RIO, POA)" autocomplete="off" style="width:100%">
-            </div>
-            <div class="ac-hint" id="h-r-ori"></div>
-          </div>
-          <span class="arr-sep" style="margin-top:9px">→</span>
-          <div style="flex:1">
-            <div style="position:relative">
-              <input class="inp-plain" id="r-dst" placeholder="Cidade ou IATA (ex: PAR, GIG)" autocomplete="off" style="width:100%">
-            </div>
-            <div class="ac-hint" id="h-r-dst"></div>
-          </div>
-          <button class="btn-p" style="padding:9px 16px;font-size:11px" onclick="addRota()">+ Adicionar</button>
-        </div>
-        <div class="route-ls" id="route-ls">
-          <div class="empty-c"><span class="spin"></span></div>
-        </div>
-      </div>
-
-      <div class="cfg-box">
-        <div class="sec-ttl">📊 Parâmetros de Busca</div>
-
-        <div class="pg">
-          <div class="plbl">Janela de datas (dias)</div>
-          <div class="day-chips">
-            <div class="dchip" data-v="7" onclick="toggleDay(this)">7</div>
-            <div class="dchip" data-v="14" onclick="toggleDay(this)">14</div>
-            <div class="dchip" data-v="30" onclick="toggleDay(this)">30</div>
-            <div class="dchip" data-v="60" onclick="toggleDay(this)">60</div>
-            <div class="dchip" data-v="90" onclick="toggleDay(this)">90</div>
-            <div class="dchip" data-v="120" onclick="toggleDay(this)">120</div>
-            <div class="dchip" data-v="180" onclick="toggleDay(this)">180</div>
-          </div>
-        </div>
-
-        <div class="pg">
-          <div class="plbl">Desconto mínimo para alerta <span class="pval" id="thr-v">30%</span></div>
-          <input class="slider" type="range" id="thr" min="5" max="60" step="5" value="30"
-            oninput="document.getElementById('thr-v').textContent=this.value+'%'">
-        </div>
-
-        <div class="pg">
-          <div class="plbl">Intervalo entre verificações</div>
-          <select class="sel" id="int-sel">
-            <option value="1">1h</option>
-            <option value="2">2h</option>
-            <option value="4" selected>4h</option>
-            <option value="6">6h</option>
-            <option value="12">12h</option>
-            <option value="24">24h</option>
-          </select>
-        </div>
-
-        <div class="tog-ls">
-          <div class="tog-row">
-            <span class="tog-lbl">Alertar para múltiplas companhias</span>
-            <label class="toggle"><input type="checkbox" id="tog1" checked><div class="tog-t"></div></label>
-          </div>
-          <div class="tog-row">
-            <span class="tog-lbl">Incluir voos com escala</span>
-            <label class="toggle"><input type="checkbox" id="tog2"><div class="tog-t"></div></label>
-          </div>
-          <div class="tog-row">
-            <span class="tog-lbl">Priorizar voos diretos</span>
-            <label class="toggle"><input type="checkbox" id="tog3" checked><div class="tog-t"></div></label>
-          </div>
-        </div>
-
-        <button class="btn-save" onclick="saveSettings()">💾 Salvar configurações</button>
       </div>
     </div>
 
