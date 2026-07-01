@@ -13,5 +13,4 @@ voos.db
 dist/
 build/
 *.egg-info/
-user_config.json
 test_*.py

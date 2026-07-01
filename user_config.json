@@ -1,0 +1,24 @@
+{
+  "rotas": [
+    {
+      "origem": "POA",
+      "destino": "GIG"
+    },
+    {
+      "origem": "POA",
+      "destino": "IZA"
+    },
+    {
+      "origem": "POA",
+      "destino": "BUE"
+    }
+  ],
+  "dias_antecedencia": [
+    30,
+    60,
+    90,
+    120
+  ],
+  "threshold_desconto": 0.3,
+  "intervalo_horas": 12
+}

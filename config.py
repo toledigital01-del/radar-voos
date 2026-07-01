@@ -16,7 +16,9 @@ def now_brasilia() -> datetime:
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
 
 # Banco de dados
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///voos.db")
+_raw_db_url = os.getenv("DATABASE_URL", "sqlite:///voos.db")
+# Railway fornece "postgres://..." (formato antigo) — SQLAlchemy 2.x exige "postgresql://"
+DATABASE_URL = _raw_db_url.replace("postgres://", "postgresql://", 1) if _raw_db_url.startswith("postgres://") else _raw_db_url
 
 # Redis
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
