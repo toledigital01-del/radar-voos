@@ -4,259 +4,281 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Radar Voos</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#0d0f1a;--card:#141830;--card2:#1a1f3a;
-  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.12);
-  --purple:#7c3aed;--purple2:#6d28d9;--purple-dim:rgba(124,58,237,0.15);
-  --green:#10b981;--green-dim:rgba(16,185,129,0.12);
-  --teal:#06b6d4;--teal-dim:rgba(6,182,212,0.12);
-  --amber:#f59e0b;--amber-dim:rgba(245,158,11,0.12);
-  --blue:#3b82f6;--blue-dim:rgba(59,130,246,0.12);
+  --bg:#0c0d15;
+  --card:#12131d;
+  --card2:#1a1b27;
+  --card3:#1f2033;
+  --border:rgba(255,255,255,0.06);
+  --border2:rgba(255,255,255,0.10);
+  --border3:rgba(255,255,255,0.14);
+  --purple:#7c3aed;--purple2:#6d28d9;--purple3:#8b5cf6;
+  --purple-dim:rgba(124,58,237,0.15);--purple-glow:rgba(124,58,237,0.25);
+  --green:#10b981;--green-dim:rgba(16,185,129,0.15);--green-border:rgba(16,185,129,0.25);
+  --teal:#06b6d4;--teal-dim:rgba(6,182,212,0.12);--teal-border:rgba(6,182,212,0.2);
+  --amber:#f59e0b;--amber-dim:rgba(245,158,11,0.12);--amber-border:rgba(245,158,11,0.2);
+  --blue:#3b82f6;--blue-dim:rgba(59,130,246,0.12);--blue-border:rgba(59,130,246,0.22);
   --red:#ef4444;
-  --text:#f0f4ff;--text2:#a0aec0;--muted:#4a5568;
+  --text:#f1f5f9;--text2:#94a3b8;--muted:#475569;
 }
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:13px;line-height:1.5}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
 
 /* ── HEADER ── */
-.hdr{background:rgba(13,15,26,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 28px;height:60px;display:flex;align-items:center;position:sticky;top:0;z-index:100}
-.hdr-brand{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
-.hdr-ico{width:36px;height:36px;background:var(--purple);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
-.hdr-title{font-size:15px;font-weight:700;color:var(--text)}
-.hdr-sub{font-size:10px;color:var(--text2);margin-top:1px}
-.hdr-nav{display:flex;align-items:center;gap:2px;background:var(--card);border:1px solid var(--border);border-radius:99px;padding:3px;position:absolute;left:50%;transform:translateX(-50%)}
-.ntab{padding:6px 18px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;border-radius:99px;transition:.15s;user-select:none;display:flex;align-items:center;gap:6px;white-space:nowrap;border:none;background:transparent;font-family:inherit}
+.hdr{background:rgba(12,13,21,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 32px;height:62px;display:flex;align-items:center;position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:12px;flex-shrink:0;text-decoration:none}
+.brand-ico{width:38px;height:38px;background:var(--purple);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 0 18px var(--purple-glow)}
+.brand-name{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.01em}
+.brand-sub{font-size:10px;color:var(--text2);margin-top:1px}
+.nav{display:flex;align-items:center;gap:2px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:99px;padding:4px;position:absolute;left:50%;transform:translateX(-50%)}
+.ntab{padding:6px 20px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;border-radius:99px;transition:.18s;user-select:none;display:inline-flex;align-items:center;gap:7px;border:none;background:transparent;font-family:inherit;white-space:nowrap}
+.ntab svg{opacity:.7;transition:.18s}
 .ntab:hover{color:var(--text)}
-.ntab.on{background:var(--purple);color:#fff}
-.hdr-live{margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:99px;padding:5px 12px;font-size:11px;font-weight:600;color:var(--green);flex-shrink:0;cursor:default}
-.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+.ntab.on{background:var(--purple);color:#fff;box-shadow:0 2px 10px rgba(124,58,237,0.4)}
+.ntab.on svg{opacity:1}
+.live{margin-left:auto;display:inline-flex;align-items:center;gap:7px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:99px;padding:6px 14px;font-size:11px;font-weight:600;color:var(--green);flex-shrink:0;letter-spacing:.01em}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pulse-dot 2s ease-in-out infinite}
+@keyframes pulse-dot{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,185,129,0.4)}50%{opacity:.7;box-shadow:0 0 0 4px rgba(16,185,129,0)}}
+
+/* ── TICKER ── */
+.ticker{background:rgba(124,58,237,0.06);border-bottom:1px solid rgba(124,58,237,0.12);padding:6px 0;overflow:hidden}
+.ticker-inner{display:flex;gap:0;animation:ticker 30s linear infinite;width:max-content}
+.ticker-item{display:inline-flex;align-items:center;gap:6px;padding:0 28px;font-size:11px;color:var(--text2);white-space:nowrap;border-right:1px solid var(--border)}
+.ticker-item .rt{font-weight:600;color:var(--text)}
+.ticker-item .price{color:var(--green);font-weight:600}
+.ticker-item .pct{background:var(--green-dim);border:1px solid var(--green-border);color:var(--green);padding:1px 6px;border-radius:99px;font-size:10px;font-weight:700}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
 /* ── PAGES ── */
 .page{display:none}.page.on{display:block}
-.wrap{max-width:1320px;margin:0 auto;padding:24px 28px}
+.wrap{max-width:1320px;margin:0 auto;padding:22px 32px}
 
 /* ── STAT CARDS ── */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
-.sc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;display:flex;gap:14px;align-items:flex-start}
-.sc-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.sc-ico.blue{background:var(--blue-dim);border:1px solid rgba(59,130,246,0.2)}
-.sc-ico.teal{background:var(--teal-dim);border:1px solid rgba(6,182,212,0.2)}
-.sc-ico.green{background:var(--green-dim);border:1px solid rgba(16,185,129,0.2)}
-.sc-ico.amber{background:var(--amber-dim);border:1px solid rgba(245,158,11,0.2)}
-.sc-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
-.sc-val{font-size:28px;font-weight:700;color:var(--text);line-height:1;margin-bottom:4px}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;display:flex;align-items:flex-start;gap:14px;transition:.2s}
+.sc:hover{border-color:var(--border2);transform:translateY(-1px)}
+.sc-ico{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.sc-ico.blue{background:var(--blue-dim);border:1px solid var(--blue-border)}
+.sc-ico.teal{background:var(--teal-dim);border:1px solid var(--teal-border)}
+.sc-ico.green{background:var(--green-dim);border:1px solid var(--green-border)}
+.sc-ico.amber{background:var(--amber-dim);border:1px solid var(--amber-border)}
+.sc-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;margin-bottom:7px}
+.sc-val{font-size:30px;font-weight:800;color:var(--text);line-height:1;margin-bottom:5px;letter-spacing:-.02em}
 .sc-sub{font-size:11px;color:var(--text2)}
 
 /* ── SERPAPI CARD ── */
-.serp-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:16px}
+.serp{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:14px}
 .serp-top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-.serp-ico{width:32px;height:32px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px}
-.serp-info{flex:1}
+.serp-ico{width:34px;height:34px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.22);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
 .serp-title{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
 .serp-desc{font-size:11px;color:var(--text2);margin-top:2px}
-.badge-connected{background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:var(--green);font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;display:inline-flex;align-items:center;gap:4px}
-.badge-connected::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green)}
-.btn-outline{background:transparent;border:1px solid var(--border2);border-radius:8px;padding:7px 14px;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:.15s;display:inline-flex;align-items:center;gap:6px}
-.btn-outline:hover{border-color:var(--purple);color:var(--text)}
+.badge-on{display:inline-flex;align-items:center;gap:5px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.22);color:var(--green);font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px}
+.badge-on::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green)}
 .serp-form{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end}
-.sf-field{display:flex;flex-direction:column;gap:5px}
+.sf{display:flex;flex-direction:column;gap:5px}
 .sf-lbl{font-size:10px;font-weight:500;color:var(--text2);letter-spacing:.04em}
-.inp{background:#080a17;border:1px solid var(--border2);border-radius:8px;padding:9px 12px 9px 34px;color:var(--text);font-size:12px;font-family:inherit;outline:none;transition:.15s;width:100%}
-.inp:focus{border-color:var(--purple);box-shadow:0 0 0 2px rgba(124,58,237,0.15)}
-.inp::placeholder{color:var(--muted)}
 .inp-wrap{position:relative}
-.inp-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}
-.inp-plain{background:#080a17;border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:12px;font-family:inherit;outline:none;transition:.15s;width:100%}
-.inp-plain:focus{border-color:var(--purple);box-shadow:0 0 0 2px rgba(124,58,237,0.15)}
-.btn-purple{background:var(--purple);border:none;border-radius:8px;padding:9px 20px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
-.btn-purple:hover{background:var(--purple2)}
+.inp-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;opacity:.5}
+.inp{background:#080910;border:1px solid var(--border2);border-radius:9px;padding:9px 12px 9px 34px;color:var(--text);font-size:12px;font-family:inherit;outline:none;transition:.18s;width:100%}
+.inp:focus{border-color:var(--purple3);box-shadow:0 0 0 2px rgba(124,58,237,0.12)}
+.inp::placeholder{color:var(--muted)}
+.inp-plain{background:#080910;border:1px solid var(--border2);border-radius:9px;padding:9px 12px;color:var(--text);font-size:12px;font-family:inherit;outline:none;transition:.18s;width:100%}
+.inp-plain:focus{border-color:var(--purple3);box-shadow:0 0 0 2px rgba(124,58,237,0.12)}
+.inp-plain::placeholder{color:var(--muted)}
+.btn-p{background:var(--purple);border:none;border-radius:9px;padding:9px 22px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.18s;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 2px 12px rgba(124,58,237,0.3)}
+.btn-p:hover{background:var(--purple2);box-shadow:0 4px 16px rgba(124,58,237,0.4);transform:translateY(-1px)}
+.btn-p:active{transform:translateY(0)}
+.btn-g{background:transparent;border:1px solid var(--border2);border-radius:9px;padding:8px 16px;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:.18s;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.btn-g:hover{border-color:var(--purple3);color:var(--text)}
 
 /* ── TWO COL ── */
-.two-col{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;margin-bottom:16px}
+.two-col{display:grid;grid-template-columns:1.45fr 1fr;gap:12px;margin-bottom:14px}
 .chart-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
-.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.card-ttl{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:8px}
-.card-ttl svg{opacity:.6}
-.rsel{background:#080a17;border:1px solid var(--border2);border-radius:7px;padding:5px 10px;color:var(--text2);font-size:11px;font-family:inherit;outline:none;cursor:pointer}
-.alerts-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;overflow:hidden}
-.alert-list{display:flex;flex-direction:column;gap:1px;max-height:260px;overflow-y:auto}
-.alert-list::-webkit-scrollbar{width:4px}
-.alert-list::-webkit-scrollbar-track{background:transparent}
-.alert-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
-.al-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;transition:.15s}
-.al-item:hover{background:var(--card2)}
-.al-route{font-weight:600;font-size:12px;color:var(--text)}
-.al-info{font-size:10px;color:var(--text2);margin-top:2px}
-.disc-badge{background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);color:var(--green);font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px}
-.disc-badge.red{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.25);color:var(--red)}
-.offer-link{font-size:11px;font-weight:500;color:var(--purple);text-decoration:none;white-space:nowrap;opacity:.8;transition:.15s}
-.offer-link:hover{opacity:1}
-.al-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.crd-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.crd-ttl{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.09em;display:flex;align-items:center;gap:7px}
+.rsel{background:#080910;border:1px solid var(--border2);border-radius:7px;padding:5px 10px;color:var(--text2);font-size:11px;font-family:inherit;outline:none;cursor:pointer;transition:.15s}
+.rsel:focus{border-color:var(--purple3)}
+.alerts-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;display:flex;flex-direction:column}
+.al-list{display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:260px;flex:1}
+.al-list::-webkit-scrollbar{width:3px}
+.al-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+.al-row{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 13px;display:flex;align-items:center;justify-content:space-between;transition:.15s;cursor:pointer}
+.al-row:hover{border-color:var(--border2);background:var(--card3)}
+.al-route{font-weight:700;font-size:12px;color:var(--text);display:flex;align-items:center;gap:6px}
+.al-meta{font-size:10px;color:var(--text2);margin-top:3px}
+.disc{background:rgba(16,185,129,0.14);border:1px solid rgba(16,185,129,0.28);color:var(--green);font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0}
+.disc.big{font-size:11px;padding:3px 10px}
+.offer-a{font-size:11px;font-weight:500;color:var(--purple3);text-decoration:none;white-space:nowrap;opacity:.9;transition:.15s;margin-top:4px;display:block}
+.offer-a:hover{opacity:1;color:#a78bfa}
 
 /* ── ROUTES TABLE ── */
-.table-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px}
-.table-card-hdr{padding:14px 20px;border-bottom:1px solid var(--border)}
+.tcrd{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:14px}
+.tcrd-hdr{padding:14px 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
 table{width:100%;border-collapse:collapse}
-th{padding:10px 16px;text-align:left;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;background:rgba(0,0,0,0.2);border-bottom:1px solid var(--border)}
-td{padding:12px 16px;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.03)}
-tbody tr{transition:background .1s}
+th{padding:9px 16px;text-align:left;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;background:rgba(0,0,0,0.15);border-bottom:1px solid var(--border)}
+td{padding:13px 16px;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.03)}
+tbody tr{transition:background .12s}
 tbody tr:hover{background:rgba(255,255,255,0.02)}
 tbody tr:last-child td{border-bottom:none}
-.td-route{font-weight:600;font-size:13px;color:var(--text);display:flex;align-items:center;gap:6px}
-.td-route .arr{color:var(--muted)}
-.td-price{font-weight:600}
-.td-price.deal{color:var(--green)}
-.td-price.normal{color:var(--text)}
+.td-rt{font-weight:600;font-size:13px;display:flex;align-items:center;gap:5px}
+.td-rt .sep{color:var(--muted);font-weight:400}
+.td-deal{color:var(--green);font-weight:600}
+.td-normal{color:var(--text);font-weight:500}
 .td-avg{color:var(--text2)}
 .td-co{color:var(--text2)}
-.td-time{color:var(--muted);font-size:11px}
-.empty-row{text-align:center;padding:32px;color:var(--muted)}
+.td-ago{color:var(--muted);font-size:11px}
+.tdisc{display:inline-block;padding:3px 9px;border-radius:99px;font-size:10px;font-weight:700}
+.tdisc.green{background:rgba(16,185,129,0.14);border:1px solid rgba(16,185,129,0.28);color:var(--green)}
+.tdisc.red{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.22);color:var(--red)}
 
-/* ── CONFIGURAÇÕES ── */
-.cfg-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 24px;margin-bottom:14px}
-.cfg-hdr{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:18px;display:flex;align-items:center;gap:8px}
-.ch-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:4px}
-.ch-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:.2s;position:relative}
-.ch-card:hover{border-color:var(--border2)}
-.ch-card.active{border-color:rgba(59,130,246,0.5);background:rgba(59,130,246,0.05)}
-.ch-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.ch-ico{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
-.ch-ico.tg{background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.2)}
-.ch-ico.wa{background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.2)}
-.ch-ico.em{background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.2)}
+/* ── CONFIG PAGE ── */
+.cfg-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 24px;margin-bottom:14px}
+.sec-ttl{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.09em;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.ch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ch-crd{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:.2s;user-select:none}
+.ch-crd:hover{border-color:var(--border2)}
+.ch-crd.on{border-color:rgba(59,130,246,0.45);background:rgba(59,130,246,0.05)}
+.ch-crd-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ch-ico{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ch-ico.tg{background:var(--blue-dim);border:1px solid var(--blue-border)}
+.ch-ico.wa{background:var(--teal-dim);border:1px solid var(--teal-border)}
+.ch-ico.em{background:var(--amber-dim);border:1px solid var(--amber-border)}
 .ch-status{font-size:10px;font-weight:600;display:flex;align-items:center;gap:4px}
-.ch-status.on{color:var(--green)}
+.ch-status.on{color:var(--blue)}
 .ch-status.off{color:var(--muted)}
 .ch-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
 .ch-desc{font-size:11px;color:var(--text2)}
 
-.tg-cfg{background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:12px;padding:18px;margin-top:14px;display:none}
-.tg-cfg.show{display:block}
-.tg-cfg-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.tg-cfg-title{font-size:12px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
-.status-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;border:1px solid}
-.status-badge.untested{background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.3);color:var(--amber)}
-.status-badge.ok{background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.3);color:var(--green)}
-.status-badge.err{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);color:var(--red)}
-.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.tg-cfg-wrap{background:rgba(0,0,0,0.18);border:1px solid var(--border);border-radius:12px;padding:18px;margin-top:14px;display:none}
+.tg-cfg-wrap.show{display:block}
+.tg-cfg-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.tg-cfg-ttl{font-size:12px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:7px}
+.sbadge{font-size:10px;font-weight:600;padding:3px 10px;border-radius:99px;border:1px solid}
+.sbadge.warn{background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.25);color:var(--amber)}
+.sbadge.ok{background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.25);color:var(--green)}
+.sbadge.err{background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.25);color:var(--red)}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .field{display:flex;flex-direction:column;gap:5px}
 .flbl{font-size:10px;font-weight:500;color:var(--text2);display:flex;align-items:center;gap:6px}
-.env-tag{font-size:9px;background:rgba(255,255,255,0.06);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;color:var(--muted);font-family:monospace}
+.env-t{font-size:9px;background:rgba(255,255,255,0.05);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;color:var(--muted);font-family:monospace;letter-spacing:0}
 .btn-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.test-result{margin-top:10px;padding:8px 12px;border-radius:8px;font-size:11px;display:none}
-.test-result.ok{background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);color:#6ee7b7}
-.test-result.err{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);color:#fca5a5}
-.test-result.warn{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);color:#fcd34d}
+.tr-box{margin-top:10px;padding:9px 13px;border-radius:8px;font-size:11px;display:none}
+.tr-box.ok{background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.18);color:#6ee7b7}
+.tr-box.err{background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.18);color:#fca5a5}
+.tr-box.warn{background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.18);color:#fcd34d}
+.cfg-note{font-size:10px;color:var(--muted);margin-top:10px}
 
-.cfg-two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cfg2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .cfg-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 24px}
 
-.route-form{display:flex;gap:8px;align-items:center;margin-bottom:14px}
-.route-form .inp-plain{flex:1}
-.arr-ico{color:var(--muted);font-size:14px;flex-shrink:0}
-.route-list{display:flex;flex-direction:column;gap:6px}
-.route-item{display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:8px;padding:10px 14px}
-.route-lbl{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
-.btn-icon{background:transparent;border:none;color:var(--muted);cursor:pointer;padding:4px;border-radius:6px;transition:.15s;font-size:14px}
-.btn-icon:hover{color:var(--red);background:rgba(239,68,68,0.1)}
+.route-add{display:flex;gap:8px;align-items:center;margin-bottom:14px}
+.arr-sep{color:var(--muted);font-size:14px;flex-shrink:0}
+.route-ls{display:flex;flex-direction:column;gap:7px}
+.route-row{display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,0.18);border:1px solid var(--border);border-radius:9px;padding:10px 14px;transition:.15s}
+.route-row:hover{border-color:var(--border2)}
+.route-lbl{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:7px}
+.route-lbl .sep{color:var(--muted);font-weight:400}
+.btn-trash{background:transparent;border:none;color:var(--muted);cursor:pointer;padding:4px 6px;border-radius:6px;transition:.15s;font-size:14px;line-height:1}
+.btn-trash:hover{color:var(--red);background:rgba(239,68,68,0.1)}
 
-.days-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
-.day-chip{background:rgba(0,0,0,0.3);border:1px solid var(--border2);border-radius:99px;padding:5px 14px;font-size:11px;font-weight:500;color:var(--text2);cursor:pointer;transition:.15s;user-select:none}
-.day-chip.on{background:var(--purple);border-color:var(--purple);color:#fff}
-.day-chip:hover:not(.on){border-color:var(--purple);color:var(--text)}
-
-.param-group{margin-bottom:18px}
-.param-lbl{font-size:11px;font-weight:500;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
-.param-val{font-size:13px;font-weight:700;color:var(--purple)}
-.slider{width:100%;accent-color:var(--purple);cursor:pointer;height:4px}
-.select{background:#080a17;border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:12px;font-family:inherit;outline:none;cursor:pointer;width:100%;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
-
-.toggle-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
-.toggle-row{display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
-.toggle-name{font-size:12px;color:var(--text)}
+.day-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.dchip{background:rgba(0,0,0,0.25);border:1px solid var(--border2);border-radius:99px;padding:5px 14px;font-size:11px;font-weight:500;color:var(--text2);cursor:pointer;transition:.16s;user-select:none}
+.dchip.on{background:var(--purple);border-color:var(--purple);color:#fff}
+.dchip:hover:not(.on){border-color:var(--purple3);color:var(--text)}
+.pg{margin-bottom:18px}
+.plbl{font-size:11px;font-weight:500;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.pval{font-size:13px;font-weight:700;color:var(--purple3)}
+.slider{width:100%;accent-color:var(--purple);cursor:pointer}
+.sel{background:#080910;border:1px solid var(--border2);border-radius:9px;padding:9px 12px;color:var(--text);font-size:12px;font-family:inherit;outline:none;cursor:pointer;width:100%;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;transition:.15s}
+.sel:focus{border-color:var(--purple3);box-shadow:0 0 0 2px rgba(124,58,237,0.1)}
+.tog-ls{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.tog-row{display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,0.18);border:1px solid var(--border);border-radius:9px;padding:12px 14px;transition:.15s}
+.tog-row:hover{border-color:var(--border2)}
+.tog-lbl{font-size:12px;color:var(--text);font-weight:400}
 .toggle{position:relative;width:40px;height:22px;flex-shrink:0}
 .toggle input{opacity:0;width:0;height:0;position:absolute}
-.toggle-track{position:absolute;inset:0;background:var(--card2);border:1px solid var(--border2);border-radius:99px;cursor:pointer;transition:.25s}
-.toggle input:checked+.toggle-track{background:var(--purple);border-color:var(--purple)}
-.toggle-track::before{content:'';position:absolute;width:16px;height:16px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.25s}
-.toggle input:checked+.toggle-track::before{transform:translateX(18px)}
-
-.btn-save-full{width:100%;padding:11px;font-size:13px;font-weight:600;background:var(--purple);border:none;border-radius:10px;color:#fff;cursor:pointer;font-family:inherit;transition:.15s;display:flex;align-items:center;justify-content:center;gap:8px}
-.btn-save-full:hover{background:var(--purple2)}
+.tog-t{position:absolute;inset:0;background:rgba(255,255,255,0.08);border:1px solid var(--border2);border-radius:99px;cursor:pointer;transition:.25s}
+.toggle input:checked+.tog-t{background:var(--purple);border-color:var(--purple)}
+.tog-t::before{content:'';position:absolute;width:16px;height:16px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+.toggle input:checked+.tog-t::before{transform:translateX(18px)}
+.btn-save{width:100%;padding:11px;font-size:13px;font-weight:600;background:var(--purple);border:none;border-radius:10px;color:#fff;cursor:pointer;font-family:inherit;transition:.18s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 2px 12px rgba(124,58,237,0.25)}
+.btn-save:hover{background:var(--purple2);box-shadow:0 4px 18px rgba(124,58,237,0.38);transform:translateY(-1px)}
 
 /* ── ASSINANTES ── */
-.add-form-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:14px}
-.add-form-row{display:grid;grid-template-columns:1fr auto 1fr auto;gap:10px;align-items:end}
+.add-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:14px}
+.add-row{display:grid;grid-template-columns:1fr auto 1fr auto;gap:10px;align-items:end}
 .list-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
 .list-hdr{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .list-count{font-size:11px;color:var(--text2)}
-.list-count strong{color:var(--green)}
-.filter-pills{display:flex;gap:4px;margin-left:auto}
-.fpill{background:transparent;border:1px solid var(--border2);border-radius:99px;padding:4px 12px;font-size:11px;font-weight:500;color:var(--text2);cursor:pointer;transition:.15s;font-family:inherit}
-.fpill.on{background:var(--purple);border-color:var(--purple);color:#fff}
-.fpill:hover:not(.on){border-color:var(--purple);color:var(--text)}
-.search-inp{background:#080a17;border:1px solid var(--border2);border-radius:8px;padding:5px 10px 5px 28px;color:var(--text);font-size:11px;font-family:inherit;outline:none;width:150px;position:relative}
-.search-wrap{position:relative;display:inline-flex;align-items:center}
-.search-ico{position:absolute;left:8px;color:var(--muted);font-size:12px;pointer-events:none}
-.canal-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;display:inline-block}
-.canal-badge.telegram{background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.25);color:#60a5fa}
-.canal-badge.whatsapp{background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);color:#34d399}
-.canal-badge.email{background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);color:#fbbf24}
-.status-pill{font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;display:inline-flex;align-items:center;gap:4px}
-.status-pill::before{content:'';width:5px;height:5px;border-radius:50%}
-.status-pill.ativo{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);color:var(--green)}
-.status-pill.ativo::before{background:var(--green)}
-.status-pill.pausado{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:var(--amber)}
-.status-pill.pausado::before{background:var(--amber)}
+.list-count b{color:var(--green)}
+.fpills{display:flex;gap:4px;margin-left:auto}
+.fp{background:transparent;border:1px solid var(--border2);border-radius:99px;padding:4px 13px;font-size:11px;font-weight:500;color:var(--text2);cursor:pointer;transition:.15s;font-family:inherit}
+.fp.on{background:var(--purple);border-color:var(--purple);color:#fff}
+.fp:hover:not(.on){border-color:var(--purple3);color:var(--text)}
+.search-w{position:relative;display:inline-flex;align-items:center}
+.search-ico{position:absolute;left:9px;color:var(--muted);font-size:12px;pointer-events:none}
+.search-inp{background:#080910;border:1px solid var(--border2);border-radius:8px;padding:6px 10px 6px 28px;color:var(--text);font-size:11px;font-family:inherit;outline:none;width:160px;transition:.15s}
+.search-inp:focus{border-color:var(--purple3)}
+.search-inp::placeholder{color:var(--muted)}
+.cbadge{font-size:10px;font-weight:600;padding:3px 10px;border-radius:99px;display:inline-flex;align-items:center;gap:5px}
+.cbadge.telegram{background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.22);color:#60a5fa}
+.cbadge.whatsapp{background:rgba(6,182,212,0.12);border:1px solid rgba(6,182,212,0.22);color:#22d3ee}
+.cbadge.email{background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.22);color:#fbbf24}
+.spill{font-size:10px;font-weight:600;padding:3px 10px;border-radius:99px;display:inline-flex;align-items:center;gap:5px}
+.spill::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.spill.ativo{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.22);color:var(--green)}
+.spill.ativo::before{background:var(--green)}
+.spill.pausado{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.22);color:var(--amber)}
+.spill.pausado::before{background:var(--amber)}
+.td-name{font-weight:600;font-size:12px;color:var(--text)}
 .td-sub{font-size:10px;color:var(--text2);margin-top:2px}
-.action-btns{display:flex;gap:6px}
-.act-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:.15s}
-.act-btn:hover{border-color:var(--purple);color:var(--text)}
-.act-btn.del:hover{border-color:var(--red);color:var(--red)}
+.acts{display:flex;gap:5px}
+.act{width:28px;height:28px;border-radius:7px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:.15s;font-family:inherit}
+.act:hover{border-color:var(--purple3);color:var(--text)}
+.act.del:hover{border-color:rgba(239,68,68,0.5);color:var(--red);background:rgba(239,68,68,0.06)}
 
 /* ── TOAST ── */
-#toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:12px 18px;font-size:12px;color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,0.4);transform:translateY(80px);opacity:0;transition:.3s cubic-bezier(.34,1.56,.64,1);z-index:999;max-width:320px}
+#toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px 18px;font-size:12px;color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,0.5);transform:translateY(80px);opacity:0;transition:.3s cubic-bezier(.34,1.56,.64,1);z-index:999;pointer-events:none;max-width:300px}
 #toast.show{transform:translateY(0);opacity:1}
-#toast.ok{border-color:rgba(16,185,129,0.4)}
-#toast.err{border-color:rgba(239,68,68,0.4)}
+#toast.ok{border-color:rgba(16,185,129,0.35)}
+#toast.err{border-color:rgba(239,68,68,0.35)}
 
 /* ── UTILS ── */
-.spin{display:inline-block;width:12px;height:12px;border:2px solid var(--border2);border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid var(--border2);border-top-color:var(--purple3);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
-.empty{color:var(--muted);text-align:center;padding:28px;font-size:12px}
-.section-note{font-size:10px;color:var(--muted);margin-top:8px}
+.empty-c{color:var(--muted);text-align:center;padding:32px 16px;font-size:12px}
 
 @media(max-width:1024px){
-  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .sg{grid-template-columns:repeat(2,1fr)}
   .serp-form{grid-template-columns:1fr 1fr}
-  .two-col{grid-template-columns:1fr}
-  .cfg-two{grid-template-columns:1fr}
-  .add-form-row{grid-template-columns:1fr 1fr}
+  .two-col,.cfg2{grid-template-columns:1fr}
+  .add-row{grid-template-columns:1fr 1fr}
 }
-@media(max-width:640px){
+@media(max-width:700px){
   .wrap{padding:16px}
   .hdr{padding:0 16px}
-  .hdr-nav{display:none}
-  .stats-grid{grid-template-columns:1fr 1fr}
-  .ch-cards{grid-template-columns:1fr}
+  .nav{display:none}
+  .sg{grid-template-columns:1fr 1fr}
+  .ch-grid{grid-template-columns:1fr}
+  .ticker{display:none}
 }
 </style>
 </head>
 <body>
 
+<!-- ── HEADER ── -->
 <header class="hdr">
-  <a class="hdr-brand" href="#">
-    <div class="hdr-ico">✈️</div>
+  <a class="brand" href="#">
+    <div class="brand-ico">✈️</div>
     <div>
-      <div class="hdr-title">Radar Voos</div>
-      <div class="hdr-sub">Passagens baratas no seu bolso</div>
+      <div class="brand-name">Radar Voos</div>
+      <div class="brand-sub">Passagens baratas no seu bolso</div>
     </div>
   </a>
-  <nav class="hdr-nav">
+  <nav class="nav">
     <button class="ntab on" onclick="showPage('dashboard',this)">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       Dashboard
@@ -270,16 +292,23 @@ tbody tr:last-child td{border-bottom:none}
       Assinantes
     </button>
   </nav>
-  <div class="hdr-live">
+  <div class="live">
     <span class="live-dot"></span>
     Monitorando ao vivo
   </div>
 </header>
 
+<!-- ── TICKER ── -->
+<div class="ticker" id="ticker-bar" style="display:none">
+  <div class="ticker-inner" id="ticker-inner"></div>
+</div>
+
 <!-- ══ DASHBOARD ══ -->
 <div class="page on" id="page-dashboard">
   <div class="wrap">
-    <div class="stats-grid">
+
+    <!-- Stat cards -->
+    <div class="sg">
       <div class="sc">
         <div class="sc-ico blue">🎯</div>
         <div>
@@ -309,233 +338,232 @@ tbody tr:last-child td{border-bottom:none}
         <div>
           <div class="sc-lbl">Última Atualização</div>
           <div class="sc-val" id="st-hora">—</div>
-          <div class="sc-sub" id="st-intervalo">Rodado a cada —h</div>
+          <div class="sc-sub" id="st-int-sub">—</div>
         </div>
       </div>
     </div>
 
-    <div class="serp-card">
+    <!-- SerpAPI -->
+    <div class="serp">
       <div class="serp-top">
         <div class="serp-ico">⚡</div>
-        <div class="serp-info">
+        <div style="flex:1">
           <div class="serp-title">
             SERPAPI — BUSCA REAL DE VOOS
-            <span class="badge-connected">Conectado</span>
+            <span class="badge-on">Conectado</span>
           </div>
           <div class="serp-desc">Conectado ao Google Flights via SerpAPI</div>
         </div>
-        <button class="btn-outline" onclick="verificarRotas()">🎯 Verificar todas as rotas</button>
+        <button class="btn-g" onclick="verificar()">🎯 Verificar todas as rotas</button>
       </div>
       <div class="serp-form">
-        <div class="sf-field">
+        <div class="sf">
           <div class="sf-lbl">Origem</div>
           <div class="inp-wrap">
             <span class="inp-ico">📍</span>
-            <input class="inp" id="s-origem" placeholder="São Paulo (GRU)" list="airports-list">
+            <input class="inp" id="s-ori" placeholder="São Paulo (GRU)">
           </div>
         </div>
-        <div class="sf-field">
+        <div class="sf">
           <div class="sf-lbl">Destino</div>
           <div class="inp-wrap">
             <span class="inp-ico">📍</span>
-            <input class="inp" id="s-destino" placeholder="Lisboa (LIS)" list="airports-list">
+            <input class="inp" id="s-dst" placeholder="Lisboa (LIS)">
           </div>
         </div>
-        <div class="sf-field">
+        <div class="sf">
           <div class="sf-lbl">Data</div>
-          <input class="inp-plain" id="s-data" type="date">
+          <input class="inp-plain" id="s-dt" type="date">
         </div>
-        <button class="btn-purple" onclick="buscarPreco()">🔍 Buscar preço</button>
+        <button class="btn-p" onclick="verificar()">🔍 Buscar preço</button>
       </div>
     </div>
 
+    <!-- Chart + Alerts -->
     <div class="two-col">
       <div class="chart-card">
-        <div class="card-hdr">
-          <div class="card-ttl">
+        <div class="crd-top">
+          <div class="crd-ttl">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             HISTÓRICO DE PREÇOS
           </div>
           <select class="rsel" id="rota-sel" onchange="updateChart()"></select>
         </div>
-        <div style="position:relative;height:210px"><canvas id="price-chart"></canvas></div>
+        <div style="position:relative;height:216px"><canvas id="price-chart"></canvas></div>
       </div>
       <div class="alerts-card">
-        <div class="card-hdr">
-          <div class="card-ttl">
+        <div class="crd-top" style="margin-bottom:12px">
+          <div class="crd-ttl">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
             ALERTAS RECENTES
           </div>
         </div>
-        <div class="alert-list" id="alert-list">
-          <div class="empty"><span class="spin"></span></div>
+        <div class="al-list" id="al-list">
+          <div class="empty-c"><span class="spin"></span></div>
         </div>
       </div>
     </div>
 
-    <div class="table-card">
-      <div class="table-card-hdr">
-        <div class="card-ttl">🗺️ ROTAS MONITORADAS</div>
+    <!-- Routes table -->
+    <div class="tcrd">
+      <div class="tcrd-hdr">
+        <div class="crd-ttl">🗺️ ROTAS MONITORADAS</div>
       </div>
       <table>
         <thead>
           <tr>
-            <th>Rota</th>
-            <th>Preço Atual</th>
-            <th>Média 30D</th>
-            <th>Desconto</th>
-            <th>Companhia</th>
-            <th>Verificação</th>
+            <th>Rota</th><th>Preço Atual</th><th>Média 30D</th><th>Desconto</th><th>Companhia</th><th>Verificação</th>
           </tr>
         </thead>
-        <tbody id="routes-tbody">
-          <tr><td colspan="6" class="empty"><span class="spin"></span></td></tr>
+        <tbody id="rt-body">
+          <tr><td colspan="6" class="empty-c"><span class="spin"></span></td></tr>
         </tbody>
       </table>
     </div>
+
   </div>
 </div>
 
 <!-- ══ CONFIGURAÇÕES ══ -->
 <div class="page" id="page-config">
   <div class="wrap">
-    <div class="cfg-section">
-      <div class="cfg-hdr">🔔 Canais de Notificação</div>
-      <div class="ch-cards">
-        <div class="ch-card" id="ch-tg" onclick="toggleChannel('tg')">
-          <div class="ch-top">
+
+    <div class="cfg-card">
+      <div class="sec-ttl">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Canais de Notificação
+      </div>
+      <div class="ch-grid">
+        <div class="ch-crd" id="ch-tg" onclick="toggleCh('tg')">
+          <div class="ch-crd-top">
             <div class="ch-ico tg">💬</div>
-            <div class="ch-status off" id="ch-tg-status"><span>○</span> Inativo</div>
+            <div class="ch-status off" id="ch-tg-s">○ Inativo</div>
           </div>
           <div class="ch-name">Telegram</div>
           <div class="ch-desc">Alertas via bot no canal ou grupo do Telegram</div>
         </div>
-        <div class="ch-card" id="ch-wa" onclick="toggleChannel('wa')">
-          <div class="ch-top">
+        <div class="ch-crd" id="ch-wa" onclick="toggleCh('wa')">
+          <div class="ch-crd-top">
             <div class="ch-ico wa">💬</div>
-            <div class="ch-status off" id="ch-wa-status"><span>○</span> Inativo</div>
+            <div class="ch-status off" id="ch-wa-s">○ Inativo</div>
           </div>
           <div class="ch-name">WhatsApp</div>
           <div class="ch-desc">Mensagens via Twilio para número ou grupo</div>
         </div>
-        <div class="ch-card" id="ch-em" onclick="toggleChannel('em')">
-          <div class="ch-top">
+        <div class="ch-crd" id="ch-em" onclick="toggleCh('em')">
+          <div class="ch-crd-top">
             <div class="ch-ico em">✉️</div>
-            <div class="ch-status off" id="ch-em-status"><span>○</span> Inativo</div>
+            <div class="ch-status off" id="ch-em-s">○ Inativo</div>
           </div>
           <div class="ch-name">Email</div>
           <div class="ch-desc">Envio via SMTP ou SendGrid</div>
         </div>
       </div>
 
-      <!-- Telegram config -->
-      <div class="tg-cfg" id="cfg-tg">
-        <div class="tg-cfg-top">
-          <div class="tg-cfg-title">💬 Configuração Telegram</div>
-          <span class="status-badge untested" id="tg-badge">⚠ Não testado</span>
+      <!-- Telegram cfg -->
+      <div class="tg-cfg-wrap" id="cfg-tg">
+        <div class="tg-cfg-hdr">
+          <div class="tg-cfg-ttl">💬 Configuração Telegram</div>
+          <span class="sbadge warn" id="tg-badge">⚠ Não testado</span>
         </div>
-        <div class="field-grid">
+        <div class="fg">
           <div class="field">
-            <div class="flbl">Bot Token <span class="env-tag">TELEGRAM_BOT_TOKEN</span></div>
+            <div class="flbl">Bot Token <span class="env-t">TELEGRAM_BOT_TOKEN</span></div>
             <input class="inp-plain" id="tg-token" type="password" placeholder="123456:ABC-DEF...">
           </div>
           <div class="field">
-            <div class="flbl">Channel / Chat ID <span class="env-tag">TELEGRAM_CHANNEL_ID</span></div>
+            <div class="flbl">Channel / Chat ID <span class="env-t">TELEGRAM_CHANNEL_ID</span></div>
             <input class="inp-plain" id="tg-channel" placeholder="@meucanal ou -1001234...">
           </div>
         </div>
         <div class="btn-row">
-          <button class="btn-purple" onclick="saveTg()">💾 Salvar</button>
-          <button class="btn-outline" onclick="testTg()">📨 Testar conexão</button>
-          <button class="btn-outline" style="border-color:rgba(245,158,11,0.3);color:var(--amber)" onclick="testAlerta()">✈️ Simular alerta</button>
+          <button class="btn-p" style="padding:7px 16px;font-size:11px" onclick="saveTg()">💾 Salvar</button>
+          <button class="btn-g" style="padding:7px 14px;font-size:11px" onclick="testTg()">📨 Testar conexão</button>
+          <button class="btn-g" style="padding:7px 14px;font-size:11px;border-color:rgba(245,158,11,0.3);color:var(--amber)" onclick="testAlert()">✈️ Simular alerta</button>
         </div>
-        <div class="test-result" id="tg-result"></div>
-        <div class="section-note">💡 Crie o bot em @BotFather → copie o token. Para o Channel ID: adicione @userinfobot ao canal e copie o ID numérico.</div>
+        <div class="tr-box" id="tg-result"></div>
+        <div class="cfg-note">💡 Crie o bot em @BotFather → copie o token. Para o Channel ID: adicione @userinfobot ao canal e copie o ID numérico (-100...).</div>
       </div>
 
-      <!-- WhatsApp config -->
-      <div class="tg-cfg" id="cfg-wa">
-        <div class="tg-cfg-top">
-          <div class="tg-cfg-title">💬 Configuração WhatsApp (Twilio)</div>
-          <span class="status-badge untested" id="wa-badge">⚠ Não testado</span>
+      <!-- WhatsApp cfg -->
+      <div class="tg-cfg-wrap" id="cfg-wa">
+        <div class="tg-cfg-hdr">
+          <div class="tg-cfg-ttl">💬 Configuração WhatsApp (Twilio)</div>
         </div>
-        <div class="field-grid">
+        <div class="fg">
           <div class="field">
-            <div class="flbl">Account SID <span class="env-tag">TWILIO_ACCOUNT_SID</span></div>
+            <div class="flbl">Account SID <span class="env-t">TWILIO_ACCOUNT_SID</span></div>
             <input class="inp-plain" id="wa-sid" type="password" placeholder="ACxxxxxxxxxxxxxxxx">
           </div>
           <div class="field">
-            <div class="flbl">Auth Token <span class="env-tag">TWILIO_AUTH_TOKEN</span></div>
-            <input class="inp-plain" id="wa-token" type="password" placeholder="seu_auth_token">
+            <div class="flbl">Auth Token <span class="env-t">TWILIO_AUTH_TOKEN</span></div>
+            <input class="inp-plain" id="wa-tok" type="password" placeholder="seu_auth_token">
           </div>
           <div class="field">
-            <div class="flbl">Número Twilio From <span class="env-tag">TWILIO_FROM</span></div>
+            <div class="flbl">Número From <span class="env-t">TWILIO_FROM</span></div>
             <input class="inp-plain" id="wa-from" placeholder="+14155238886">
           </div>
           <div class="field">
-            <div class="flbl">Número Destino To <span class="env-tag">TWILIO_TO</span></div>
+            <div class="flbl">Número To <span class="env-t">TWILIO_TO</span></div>
             <input class="inp-plain" id="wa-to" placeholder="+5511999998888">
           </div>
         </div>
-        <div class="section-note">💡 Configure o Twilio Sandbox em console.twilio.com → WhatsApp Sandbox.</div>
+        <div class="cfg-note">💡 Configure o Twilio Sandbox em console.twilio.com → WhatsApp.</div>
       </div>
 
-      <!-- Email config -->
-      <div class="tg-cfg" id="cfg-em">
-        <div class="tg-cfg-top">
-          <div class="tg-cfg-title">✉️ Configuração Email</div>
+      <!-- Email cfg -->
+      <div class="tg-cfg-wrap" id="cfg-em">
+        <div class="tg-cfg-hdr">
+          <div class="tg-cfg-ttl">✉️ Configuração Email</div>
         </div>
-        <div class="field-grid">
+        <div class="fg" style="grid-template-columns:1fr">
           <div class="field">
-            <div class="flbl">Email remetente <span class="env-tag">EMAIL_FROM</span></div>
+            <div class="flbl">Email remetente <span class="env-t">EMAIL_FROM</span></div>
             <input class="inp-plain" id="em-from" placeholder="seu@email.com">
           </div>
         </div>
       </div>
     </div>
 
-    <div class="cfg-two">
+    <div class="cfg2">
       <div class="cfg-box">
-        <div class="cfg-hdr">🗺️ Rotas Monitoradas</div>
-        <div class="route-form">
-          <input class="inp-plain" id="r-origem" placeholder="Origem" oninput="this.value=this.value.toUpperCase()">
-          <span class="arr-ico">→</span>
-          <input class="inp-plain" id="r-destino" placeholder="Destino" oninput="this.value=this.value.toUpperCase()">
-          <button class="btn-purple" onclick="addRota()">+ Adicionar</button>
+        <div class="sec-ttl">🗺️ Rotas Monitoradas</div>
+        <div class="route-add">
+          <input class="inp-plain" id="r-ori" placeholder="Origem" oninput="this.value=this.value.toUpperCase()" style="flex:1">
+          <span class="arr-sep">→</span>
+          <input class="inp-plain" id="r-dst" placeholder="Destino" oninput="this.value=this.value.toUpperCase()" style="flex:1">
+          <button class="btn-p" style="padding:9px 16px;font-size:11px" onclick="addRota()">+ Adicionar</button>
         </div>
-        <div class="route-list" id="route-list">
-          <div class="empty"><span class="spin"></span></div>
+        <div class="route-ls" id="route-ls">
+          <div class="empty-c"><span class="spin"></span></div>
         </div>
       </div>
 
       <div class="cfg-box">
-        <div class="cfg-hdr">📊 Parâmetros de Busca</div>
+        <div class="sec-ttl">📊 Parâmetros de Busca</div>
 
-        <div class="param-group">
-          <div class="param-lbl">Janela de datas (dias)</div>
-          <div class="days-chips" id="days-chips">
-            <div class="day-chip" data-v="7" onclick="toggleDay(this)">7</div>
-            <div class="day-chip" data-v="14" onclick="toggleDay(this)">14</div>
-            <div class="day-chip" data-v="30" onclick="toggleDay(this)">30</div>
-            <div class="day-chip" data-v="60" onclick="toggleDay(this)">60</div>
-            <div class="day-chip" data-v="90" onclick="toggleDay(this)">90</div>
-            <div class="day-chip" data-v="120" onclick="toggleDay(this)">120</div>
-            <div class="day-chip" data-v="180" onclick="toggleDay(this)">180</div>
+        <div class="pg">
+          <div class="plbl">Janela de datas (dias)</div>
+          <div class="day-chips">
+            <div class="dchip" data-v="7" onclick="toggleDay(this)">7</div>
+            <div class="dchip" data-v="14" onclick="toggleDay(this)">14</div>
+            <div class="dchip" data-v="30" onclick="toggleDay(this)">30</div>
+            <div class="dchip" data-v="60" onclick="toggleDay(this)">60</div>
+            <div class="dchip" data-v="90" onclick="toggleDay(this)">90</div>
+            <div class="dchip" data-v="120" onclick="toggleDay(this)">120</div>
+            <div class="dchip" data-v="180" onclick="toggleDay(this)">180</div>
           </div>
         </div>
 
-        <div class="param-group">
-          <div class="param-lbl">
-            Desconto mínimo para alerta
-            <span class="param-val" id="thr-val">30%</span>
-          </div>
-          <input class="slider" type="range" id="thr-range" min="5" max="60" step="5" value="30"
-            oninput="document.getElementById('thr-val').textContent=this.value+'%'">
+        <div class="pg">
+          <div class="plbl">Desconto mínimo para alerta <span class="pval" id="thr-v">30%</span></div>
+          <input class="slider" type="range" id="thr" min="5" max="60" step="5" value="30"
+            oninput="document.getElementById('thr-v').textContent=this.value+'%'">
         </div>
 
-        <div class="param-group">
-          <div class="param-lbl">Intervalo entre verificações</div>
-          <select class="select" id="int-sel">
+        <div class="pg">
+          <div class="plbl">Intervalo entre verificações</div>
+          <select class="sel" id="int-sel">
             <option value="1">1h</option>
             <option value="2">2h</option>
             <option value="4" selected>4h</option>
@@ -545,128 +573,127 @@ tbody tr:last-child td{border-bottom:none}
           </select>
         </div>
 
-        <div class="toggle-list">
-          <div class="toggle-row">
-            <span class="toggle-name">Alertar para múltiplas companhias</span>
-            <label class="toggle"><input type="checkbox" id="tog-multi" checked><div class="toggle-track"></div></label>
+        <div class="tog-ls">
+          <div class="tog-row">
+            <span class="tog-lbl">Alertar para múltiplas companhias</span>
+            <label class="toggle"><input type="checkbox" id="tog1" checked><div class="tog-t"></div></label>
           </div>
-          <div class="toggle-row">
-            <span class="toggle-name">Incluir voos com escala</span>
-            <label class="toggle"><input type="checkbox" id="tog-escala"><div class="toggle-track"></div></label>
+          <div class="tog-row">
+            <span class="tog-lbl">Incluir voos com escala</span>
+            <label class="toggle"><input type="checkbox" id="tog2"><div class="tog-t"></div></label>
           </div>
-          <div class="toggle-row">
-            <span class="toggle-name">Priorizar voos diretos</span>
-            <label class="toggle"><input type="checkbox" id="tog-direto" checked><div class="toggle-track"></div></label>
+          <div class="tog-row">
+            <span class="tog-lbl">Priorizar voos diretos</span>
+            <label class="toggle"><input type="checkbox" id="tog3" checked><div class="tog-t"></div></label>
           </div>
         </div>
 
-        <button class="btn-save-full" onclick="saveSettings()">💾 Salvar configurações</button>
+        <button class="btn-save" onclick="saveSettings()">💾 Salvar configurações</button>
       </div>
     </div>
+
   </div>
 </div>
 
 <!-- ══ ASSINANTES ══ -->
 <div class="page" id="page-assinantes">
   <div class="wrap">
-    <div class="add-form-card">
-      <div class="cfg-hdr">+ Adicionar Assinante</div>
-      <div class="add-form-row">
-        <div class="field">
-          <input class="inp-plain" id="a-nome" placeholder="Nome / Identificação">
-        </div>
-        <div class="field">
-          <select class="select" id="a-canal">
-            <option value="telegram">Telegram</option>
-            <option value="whatsapp">WhatsApp</option>
-            <option value="email">Email</option>
-          </select>
-        </div>
-        <div class="field">
-          <input class="inp-plain" id="a-contato" placeholder="Contato (@user, telefone, email)">
-        </div>
-        <button class="btn-purple" onclick="addAssinante()">+ Adicionar</button>
+
+    <div class="add-card">
+      <div class="sec-ttl">+ Adicionar Assinante</div>
+      <div class="add-row">
+        <div><input class="inp-plain" id="a-nome" placeholder="Nome / Identificação"></div>
+        <div><select class="sel" id="a-canal">
+          <option value="telegram">Telegram</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="email">Email</option>
+        </select></div>
+        <div><input class="inp-plain" id="a-contato" placeholder="Contato (@user, telefone, email)"></div>
+        <button class="btn-p" onclick="addAssinante()">+ Adicionar</button>
       </div>
     </div>
 
     <div class="list-card">
       <div class="list-hdr">
-        <div class="cfg-hdr" style="margin-bottom:0">Assinantes Cadastrados</div>
+        <div class="sec-ttl" style="margin-bottom:0">Assinantes Cadastrados</div>
         <span class="list-count" id="a-count"></span>
-        <div class="filter-pills" style="margin-left:auto">
-          <button class="fpill on" onclick="filterA('todos',this)">Todos</button>
-          <button class="fpill" onclick="filterA('ativo',this)">Ativo</button>
-          <button class="fpill" onclick="filterA('pausado',this)">Pausado</button>
+        <div class="fpills" style="margin-left:auto">
+          <button class="fp on" onclick="setFilter('todos',this)">Todos</button>
+          <button class="fp" onclick="setFilter('ativo',this)">Ativo</button>
+          <button class="fp" onclick="setFilter('pausado',this)">Pausado</button>
         </div>
-        <div class="search-wrap">
+        <div class="search-w">
           <span class="search-ico">🔍</span>
-          <input class="search-inp" id="a-search" placeholder="Buscar nome..." oninput="renderAssinantes()">
+          <input class="search-inp" id="a-search" placeholder="Buscar nome..." oninput="renderA()">
         </div>
       </div>
       <table>
         <thead>
           <tr>
-            <th>Assinante</th>
-            <th>Canal</th>
-            <th>Alertas</th>
-            <th>Cadastrado em</th>
-            <th>Status</th>
-            <th>Ações</th>
+            <th>Assinante</th><th>Canal</th><th>Alertas</th><th>Cadastrado em</th><th>Status</th><th>Ações</th>
           </tr>
         </thead>
-        <tbody id="a-tbody">
-          <tr><td colspan="6" class="empty"><span class="spin"></span></td></tr>
+        <tbody id="a-body">
+          <tr><td colspan="6" class="empty-c"><span class="spin"></span></td></tr>
         </tbody>
       </table>
     </div>
+
   </div>
 </div>
 
 <div id="toast"></div>
-<datalist id="airports-list"></datalist>
 
 <script>
 // ── STATE ─────────────────────────────────────────────────────────────────────
-let precosData = [];
-let alertasData = [];
-let assinantesData = [];
-let cfgData = {};
-let filterStatus = 'todos';
-let priceChart = null;
+let _precos=[], _alertas=[], _assinantes=[], _cfg={}, _filterA='todos', _chart=null;
 
-const fmt = v => 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits:0,maximumFractionDigits:0});
-const fmtDate = s => s ? new Date(s).toLocaleDateString('pt-BR') : '—';
-function timeAgo(s){
+const R=v=>'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+const fmtD=s=>s?new Date(s).toLocaleDateString('pt-BR'):'—';
+function ago(s){
   if(!s) return '—';
-  const d = Math.floor((Date.now()-new Date(s))/1000);
+  const d=Math.floor((Date.now()-new Date(s))/1000);
   if(d<60) return 'há '+d+'s';
   if(d<3600) return 'há '+Math.floor(d/60)+'min';
   if(d<86400) return 'há '+Math.floor(d/3600)+'h';
   return 'há '+Math.floor(d/86400)+'d';
 }
+function showToast(msg,ok=true){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='show '+(ok?'ok':'err');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.className='',3200);
+}
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────────
-function showPage(name, el){
+function showPage(name,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
   document.getElementById('page-'+name).classList.add('on');
   if(el) el.classList.add('on');
-  if(name==='dashboard') loadDashboard();
+  if(name==='dashboard') loadDash();
   if(name==='config') loadConfig();
-  if(name==='assinantes') loadAssinantes();
+  if(name==='assinantes') loadA();
 }
 
-// ── TOAST ─────────────────────────────────────────────────────────────────────
-function toast(msg,ok=true){
-  const t=document.getElementById('toast');
-  t.textContent=msg;
-  t.className='show '+(ok?'ok':'err');
-  clearTimeout(t._t);
-  t._t=setTimeout(()=>t.className='',3000);
+// ── TICKER ────────────────────────────────────────────────────────────────────
+function buildTicker(){
+  if(!_alertas.length) return;
+  const bar=document.getElementById('ticker-bar');
+  const inner=document.getElementById('ticker-inner');
+  const items=_alertas.slice(0,8).map(a=>{
+    const pct=(a.desconto_pct*100).toFixed(0);
+    return`<div class="ticker-item">
+      <span class="rt">${a.origem}→${a.destino}</span>
+      <span class="price">${R(a.preco_alerta)}</span>
+      <span class="pct">-${pct}%</span>
+    </div>`;
+  }).join('');
+  inner.innerHTML=items+items; // duplicate for seamless loop
+  bar.style.display='block';
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
-async function loadDashboard(){
+async function loadDash(){
   try{
     const [stats,precos,alertas,cfg]=await Promise.all([
       fetch('/api/stats').then(r=>r.json()),
@@ -674,7 +701,7 @@ async function loadDashboard(){
       fetch('/api/alertas').then(r=>r.json()),
       fetch('/api/config').then(r=>r.json()),
     ]);
-    precosData=precos; alertasData=alertas; cfgData=cfg;
+    _precos=precos; _alertas=alertas; _cfg=cfg;
 
     document.getElementById('st-rotas').textContent=stats.rotas||0;
     document.getElementById('st-alertas').textContent=stats.alertas||0;
@@ -684,97 +711,105 @@ async function loadDashboard(){
       document.getElementById('st-desc').textContent='-'+(best.desconto_pct*100).toFixed(0)+'%';
       document.getElementById('st-desc-sub').textContent=best.origem+' → '+best.destino+' · '+(best.companhia||'—');
     }
-
     const now=new Date();
     document.getElementById('st-hora').textContent=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-    document.getElementById('st-intervalo').textContent='Rodado a cada '+(cfg.intervalo_horas||4)+'h';
+    document.getElementById('st-int-sub').textContent='Rodado a cada '+(cfg.intervalo_horas||4)+'h';
 
     renderAlerts();
     renderRoutesTable();
-    buildChartSelect();
+    buildChartSel();
     updateChart();
+    buildTicker();
   }catch(e){console.error(e);}
 }
 
 function renderAlerts(){
-  const el=document.getElementById('alert-list');
-  if(!alertasData.length){el.innerHTML='<div class="empty">Nenhum alerta ainda</div>';return;}
-  el.innerHTML=alertasData.slice(0,10).map(a=>{
+  const el=document.getElementById('al-list');
+  if(!_alertas.length){el.innerHTML='<div class="empty-c">Nenhum alerta disparado ainda</div>';return;}
+  el.innerHTML=_alertas.slice(0,10).map(a=>{
     const pct=(a.desconto_pct*100).toFixed(0);
-    return`<div class="al-item">
+    return`<div class="al-row">
       <div>
-        <div class="al-route">${a.origem} → ${a.destino}</div>
-        <div class="al-info">${fmt(a.preco_alerta)} · ${a.companhia||'—'} · ${timeAgo(a.enviado_em)}</div>
+        <div class="al-route">${a.origem} → ${a.destino} <span class="disc">-${pct}%</span></div>
+        <div class="al-meta">${R(a.preco_alerta)} · ${a.companhia||'—'} · ${ago(a.enviado_em)}</div>
       </div>
-      <div class="al-right">
-        <span class="disc-badge">-${pct}%</span>
-        ${a.link_compra?`<a href="${a.link_compra}" target="_blank" class="offer-link">Ver oferta →</a>`:''}
+      <div style="text-align:right;flex-shrink:0">
+        ${a.link_compra?`<a href="${a.link_compra}" target="_blank" class="offer-a">Ver oferta →</a>`:''}
       </div>
     </div>`;
   }).join('');
 }
 
 function renderRoutesTable(){
-  const tbody=document.getElementById('routes-tbody');
-  if(!precosData.length){tbody.innerHTML='<tr><td colspan="6" class="empty">Nenhum dado coletado ainda</td></tr>';return;}
+  const tbody=document.getElementById('rt-body');
+  if(!_precos.length){tbody.innerHTML='<tr><td colspan="6" class="empty-c">Nenhum dado coletado ainda — aguarde o próximo ciclo</td></tr>';return;}
   const grouped={};
-  precosData.forEach(p=>{
+  _precos.forEach(p=>{
     const k=p.origem+'→'+p.destino;
     if(!grouped[k]||new Date(p.capturado_em)>new Date(grouped[k].capturado_em)) grouped[k]=p;
   });
   tbody.innerHTML=Object.values(grouped).map(p=>{
     const diff=p.media?((p.preco-p.media)/p.media*100):null;
     const isDeal=diff!==null&&diff<=-10;
-    const pctStr=diff!==null?(diff<0?'-':'+')+(Math.abs(diff)).toFixed(0)+'%':'—';
-    const color=diff!==null&&diff<=-10?'var(--green)':diff!==null&&diff>=10?'var(--red)':'var(--text2)';
+    const pctStr=diff!==null?(diff<0?'-'+Math.abs(diff).toFixed(0):'+'+(diff).toFixed(0))+'%':'—';
     return`<tr>
-      <td><div class="td-route">${p.origem} <span class="arr">→</span> ${p.destino}</div></td>
-      <td class="td-price ${isDeal?'deal':'normal'}">${fmt(p.preco)}</td>
-      <td class="td-avg">${p.media?fmt(p.media):'—'}</td>
-      <td><span class="disc-badge" style="color:${color};background:${isDeal?'rgba(16,185,129,0.12)':'rgba(239,68,68,0.12)'};border-color:${isDeal?'rgba(16,185,129,0.25)':'rgba(239,68,68,0.25)'}">${pctStr}</span></td>
+      <td><div class="td-rt">${p.origem}<span class="sep">→</span>${p.destino}</div></td>
+      <td class="${isDeal?'td-deal':'td-normal'}">${R(p.preco)}</td>
+      <td class="td-avg">${p.media?R(p.media):'—'}</td>
+      <td><span class="tdisc ${isDeal?'green':'red'}">${pctStr}</span></td>
       <td class="td-co">${p.companhia||'—'}</td>
-      <td class="td-time">${timeAgo(p.capturado_em)}</td>
+      <td class="td-ago">${ago(p.capturado_em)}</td>
     </tr>`;
   }).join('');
 }
 
-function buildChartSelect(){
+function buildChartSel(){
   const sel=document.getElementById('rota-sel');
-  const rotas=[...new Set(precosData.map(p=>p.origem+'→'+p.destino))];
-  sel.innerHTML=rotas.map(r=>`<option value="${r}">${r.replace('→',' → ')}</option>`).join('');
+  const rotas=[...new Set(_precos.map(p=>p.origem+'→'+p.destino))];
+  sel.innerHTML=rotas.map(r=>`<option>${r.replace('→',' → ')}</option>`).join('');
 }
 
 function updateChart(){
-  const sel=document.getElementById('rota-sel').value;
-  if(!sel) return;
-  const [o,d]=sel.split('→');
-  const items=precosData.filter(p=>p.origem===o&&p.destino===d)
+  const raw=document.getElementById('rota-sel').value;
+  if(!raw) return;
+  const [o,d]=raw.replace(' → ','→').split('→');
+  const items=_precos.filter(p=>p.origem===o&&p.destino===d)
     .sort((a,b)=>new Date(a.capturado_em)-new Date(b.capturado_em));
-  const labels=items.map(p=>fmtDate(p.capturado_em));
+  const labels=items.map(p=>fmtD(p.capturado_em));
   const data=items.map(p=>p.preco);
   const ctx=document.getElementById('price-chart').getContext('2d');
-  if(priceChart) priceChart.destroy();
-  priceChart=new Chart(ctx,{
+  if(_chart) _chart.destroy();
+  _chart=new Chart(ctx,{
     type:'line',
-    data:{labels,datasets:[{label:'Preço',data,borderColor:'#7c3aed',borderWidth:2,pointBackgroundColor:'#7c3aed',pointRadius:4,pointHoverRadius:6,fill:true,backgroundColor:'rgba(124,58,237,0.06)',tension:.3}]},
+    data:{labels,datasets:[{label:'Preço',data,
+      borderColor:'#7c3aed',borderWidth:2.5,
+      pointBackgroundColor:'#7c3aed',pointBorderColor:'#12131d',pointBorderWidth:2,
+      pointRadius:5,pointHoverRadius:7,
+      fill:true,
+      backgroundColor:(ctx2=>{
+        const g=ctx2.chart.ctx.createLinearGradient(0,0,0,200);
+        g.addColorStop(0,'rgba(124,58,237,0.2)');
+        g.addColorStop(1,'rgba(124,58,237,0)');
+        return g;
+      }),
+      tension:.35
+    }]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a1f3a',borderColor:'rgba(124,58,237,0.3)',borderWidth:1,titleColor:'#a0aec0',bodyColor:'#f0f4ff',callbacks:{label:ctx=>'R$ '+ctx.raw.toLocaleString('pt-BR')}}},
+      plugins:{legend:{display:false},
+        tooltip:{backgroundColor:'#1a1b27',borderColor:'rgba(124,58,237,0.3)',borderWidth:1,
+          titleColor:'#94a3b8',bodyColor:'#f1f5f9',padding:10,
+          callbacks:{label:c=>'  '+R(c.raw)}}},
       scales:{
-        x:{ticks:{color:'#4a5568',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},
-        y:{ticks:{color:'#4a5568',font:{size:10},callback:v=>'R$'+v.toLocaleString('pt-BR')},grid:{color:'rgba(255,255,255,0.04)'}}
+        x:{ticks:{color:'#475569',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},border:{display:false}},
+        y:{ticks:{color:'#475569',font:{size:10},callback:v=>'R$'+v.toLocaleString('pt-BR')},grid:{color:'rgba(255,255,255,0.04)'},border:{display:false}}
       }
     }
   });
 }
 
-async function buscarPreco(){
-  toast('Verificação iniciada em background...');
-  await fetch('/api/verificar',{method:'POST'});
-}
-
-async function verificarRotas(){
-  toast('Verificando todas as rotas...');
-  await fetch('/api/verificar',{method:'POST'});
+async function verificar(){
+  showToast('Verificação iniciada em background...');
+  try{await fetch('/api/verificar',{method:'POST'});}catch(e){}
 }
 
 // ── CONFIGURAÇÕES ─────────────────────────────────────────────────────────────
@@ -784,165 +819,154 @@ async function loadConfig(){
       fetch('/api/config').then(r=>r.json()),
       fetch('/api/config/channels').then(r=>r.json()),
     ]);
-    cfgData=cfg;
-
-    // Days
+    _cfg=cfg;
     const dias=cfg.dias_antecedencia||[];
-    document.querySelectorAll('.day-chip').forEach(c=>{
-      c.classList.toggle('on',dias.includes(parseInt(c.dataset.v)));
-    });
-    // Threshold
+    document.querySelectorAll('.dchip').forEach(c=>c.classList.toggle('on',dias.includes(parseInt(c.dataset.v))));
     const thr=Math.round((cfg.threshold_desconto||0.3)*100);
-    document.getElementById('thr-range').value=thr;
-    document.getElementById('thr-val').textContent=thr+'%';
-    // Interval
+    document.getElementById('thr').value=thr;
+    document.getElementById('thr-v').textContent=thr+'%';
     document.getElementById('int-sel').value=cfg.intervalo_horas||4;
-    // Rotas
-    renderCfgRotas(cfg.rotas||[]);
-    // Channels from env
+    renderRoutes(cfg.rotas||[]);
+
     if(ch.telegram){
       if(ch.telegram.token) document.getElementById('tg-token').value=ch.telegram.token;
       if(ch.telegram.channel_id) document.getElementById('tg-channel').value=ch.telegram.channel_id;
-      if(ch.telegram.configured) activateChannel('tg');
+      if(ch.telegram.configured) activateCh('tg');
     }
     if(ch.whatsapp){
       if(ch.whatsapp.sid) document.getElementById('wa-sid').value=ch.whatsapp.sid;
-      if(ch.whatsapp.auth_token) document.getElementById('wa-token').value=ch.whatsapp.auth_token;
+      if(ch.whatsapp.auth_token) document.getElementById('wa-tok').value=ch.whatsapp.auth_token;
       if(ch.whatsapp.from_number) document.getElementById('wa-from').value=ch.whatsapp.from_number;
       if(ch.whatsapp.to_number) document.getElementById('wa-to').value=ch.whatsapp.to_number;
-      if(ch.whatsapp.configured) activateChannel('wa');
+      if(ch.whatsapp.configured) activateCh('wa');
     }
     if(ch.email){
       if(ch.email.from_addr) document.getElementById('em-from').value=ch.email.from_addr;
-      if(ch.email.configured) activateChannel('em');
+      if(ch.email.configured) activateCh('em');
     }
   }catch(e){console.error(e);}
 }
 
-function activateChannel(ch){
-  document.getElementById('ch-'+ch).classList.add('active');
-  const st=document.getElementById('ch-'+ch+'-status');
-  st.className='ch-status on';st.innerHTML='<span>●</span> Ativo';
+function activateCh(ch){
+  document.getElementById('ch-'+ch).classList.add('on');
+  const s=document.getElementById('ch-'+ch+'-s');
+  s.className='ch-status on'; s.textContent='● Ativo';
   document.getElementById('cfg-'+ch).classList.add('show');
 }
 
-function toggleChannel(ch){
+function toggleCh(ch){
   const card=document.getElementById('ch-'+ch);
-  const isActive=card.classList.toggle('active');
-  const st=document.getElementById('ch-'+ch+'-status');
+  const on=card.classList.toggle('on');
+  const s=document.getElementById('ch-'+ch+'-s');
   const cfg=document.getElementById('cfg-'+ch);
-  if(isActive){st.className='ch-status on';st.innerHTML='<span>●</span> Ativo';cfg.classList.add('show');}
-  else{st.className='ch-status off';st.innerHTML='<span>○</span> Inativo';cfg.classList.remove('show');}
+  if(on){s.className='ch-status on';s.textContent='● Ativo';cfg.classList.add('show');}
+  else{s.className='ch-status off';s.textContent='○ Inativo';cfg.classList.remove('show');}
 }
 
-function renderCfgRotas(rotas){
-  const el=document.getElementById('route-list');
-  if(!rotas.length){el.innerHTML='<div class="empty">Nenhuma rota cadastrada</div>';return;}
+function renderRoutes(rotas){
+  const el=document.getElementById('route-ls');
+  if(!rotas.length){el.innerHTML='<div class="empty-c">Nenhuma rota cadastrada</div>';return;}
   el.innerHTML=rotas.map((r,i)=>`
-    <div class="route-item">
-      <div class="route-lbl">${r.origem} <span style="color:var(--muted)">→</span> ${r.destino}</div>
-      <button class="btn-icon" onclick="removeRota(${i})">🗑️</button>
+    <div class="route-row">
+      <div class="route-lbl">${r.origem} <span class="sep">→</span> ${r.destino}</div>
+      <button class="btn-trash" onclick="removeRota(${i})" title="Remover">🗑</button>
     </div>`).join('');
 }
 
 async function addRota(){
-  const o=document.getElementById('r-origem').value.trim().toUpperCase();
-  const d=document.getElementById('r-destino').value.trim().toUpperCase();
-  if(o.length<3||d.length<3){toast('Insira códigos IATA válidos (3 letras)',false);return;}
+  const o=document.getElementById('r-ori').value.trim().toUpperCase();
+  const d=document.getElementById('r-dst').value.trim().toUpperCase();
+  if(o.length<3||d.length<3){showToast('Insira códigos IATA válidos (3 letras)',false);return;}
   const r=await fetch('/api/config/rotas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({origem:o,destino:d})});
-  if(r.ok){const c=await r.json();renderCfgRotas(c.rotas||[]);document.getElementById('r-origem').value='';document.getElementById('r-destino').value='';toast('Rota '+o+'→'+d+' adicionada!');}
-  else{const e=await r.json();toast(e.detail||'Erro',false);}
+  if(r.ok){const c=await r.json();renderRoutes(c.rotas||[]);document.getElementById('r-ori').value='';document.getElementById('r-dst').value='';showToast('✅ Rota '+o+'→'+d+' adicionada!');}
+  else{const e=await r.json();showToast(e.detail||'Erro',false);}
 }
 
 async function removeRota(i){
   const r=await fetch('/api/config/rotas/'+i,{method:'DELETE'});
-  if(r.ok){const c=await r.json();renderCfgRotas(c.rotas||[]);toast('Rota removida');}
+  if(r.ok){const c=await r.json();renderRoutes(c.rotas||[]);showToast('Rota removida');}
 }
 
 function toggleDay(el){el.classList.toggle('on');}
 
 async function saveSettings(){
-  const dias=Array.from(document.querySelectorAll('.day-chip.on')).map(c=>parseInt(c.dataset.v)).sort((a,b)=>a-b);
-  if(!dias.length){toast('Selecione ao menos um período',false);return;}
+  const dias=Array.from(document.querySelectorAll('.dchip.on')).map(c=>parseInt(c.dataset.v)).sort((a,b)=>a-b);
+  if(!dias.length){showToast('Selecione ao menos um período',false);return;}
   const r=await fetch('/api/config/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
     dias_antecedencia:dias,
-    threshold_desconto:parseInt(document.getElementById('thr-range').value)/100,
+    threshold_desconto:parseInt(document.getElementById('thr').value)/100,
     intervalo_horas:parseInt(document.getElementById('int-sel').value),
   })});
-  if(r.ok) toast('✅ Configurações salvas! Reinicie o servidor para aplicar.');
-  else toast('Erro ao salvar',false);
+  if(r.ok) showToast('✅ Configurações salvas! Reinicie o servidor para aplicar.');
+  else showToast('Erro ao salvar',false);
 }
 
-function saveTg(){
-  toast('✅ Telegram salvo — configure TELEGRAM_BOT_TOKEN e TELEGRAM_CHANNEL_ID no Railway também');
-}
+function saveTg(){showToast('✅ Configure TELEGRAM_BOT_TOKEN e TELEGRAM_CHANNEL_ID no Railway também');}
 
 async function testTg(){
   const box=document.getElementById('tg-result');
-  box.style.display='block';box.className='test-result warn';box.textContent='Testando conexão...';
+  box.style.display='block';box.className='tr-box warn';box.textContent='Testando conexão...';
   try{
     const r=await fetch('/api/testar-telegram',{method:'POST'});
     const j=await r.json();
     if(r.ok&&j.ok){
-      box.className='test-result ok';box.textContent='✅ '+j.msg;
-      const b=document.getElementById('tg-badge');b.className='status-badge ok';b.textContent='✅ Conectado';
+      box.className='tr-box ok';box.textContent='✅ '+j.msg;
+      const b=document.getElementById('tg-badge');b.className='sbadge ok';b.textContent='✅ Conectado';
     }else{
-      box.className='test-result err';box.textContent='❌ '+(j.detail||'Falha');
-      const b=document.getElementById('tg-badge');b.className='status-badge err';b.textContent='❌ Erro';
+      box.className='tr-box err';box.textContent='❌ '+(j.detail||'Falha');
+      const b=document.getElementById('tg-badge');b.className='sbadge err';b.textContent='❌ Erro';
     }
-  }catch(e){box.className='test-result err';box.textContent='❌ '+e.message;}
+  }catch(e){box.className='tr-box err';box.textContent='❌ '+e.message;}
 }
 
-async function testAlerta(){
+async function testAlert(){
   const box=document.getElementById('tg-result');
-  box.style.display='block';box.className='test-result warn';box.textContent='Enviando alerta simulado...';
+  box.style.display='block';box.className='tr-box warn';box.textContent='Enviando alerta simulado...';
   try{
     const r=await fetch('/api/testar-alerta',{method:'POST'});
     const j=await r.json();
-    if(r.ok&&j.ok){box.className='test-result ok';box.textContent='✅ '+j.msg;}
-    else{box.className='test-result err';box.textContent='❌ '+(j.detail||'Falha');}
-  }catch(e){box.className='test-result err';box.textContent='❌ '+e.message;}
+    if(r.ok&&j.ok){box.className='tr-box ok';box.textContent='✅ '+j.msg;}
+    else{box.className='tr-box err';box.textContent='❌ '+(j.detail||'Falha');}
+  }catch(e){box.className='tr-box err';box.textContent='❌ '+e.message;}
 }
 
 // ── ASSINANTES ────────────────────────────────────────────────────────────────
-async function loadAssinantes(){
+async function loadA(){
   const r=await fetch('/api/assinantes');
-  assinantesData=await r.json();
-  renderAssinantes();
+  _assinantes=await r.json();
+  renderA();
 }
 
-function filterA(f,el){
-  filterStatus=f;
-  document.querySelectorAll('.fpill').forEach(p=>p.classList.remove('on'));
+function setFilter(f,el){
+  _filterA=f;
+  document.querySelectorAll('.fp').forEach(p=>p.classList.remove('on'));
   el.classList.add('on');
-  renderAssinantes();
+  renderA();
 }
 
-function renderAssinantes(){
+function renderA(){
   const q=(document.getElementById('a-search').value||'').toLowerCase();
-  let list=assinantesData.filter(a=>{
-    if(filterStatus==='ativo'&&!a.ativo) return false;
-    if(filterStatus==='pausado'&&a.ativo) return false;
+  const list=_assinantes.filter(a=>{
+    if(_filterA==='ativo'&&!a.ativo) return false;
+    if(_filterA==='pausado'&&a.ativo) return false;
     if(q&&!a.nome.toLowerCase().includes(q)&&!a.contato.toLowerCase().includes(q)) return false;
     return true;
   });
-  const ativos=assinantesData.filter(a=>a.ativo).length;
-  document.getElementById('a-count').innerHTML=`<strong>${ativos} ativos</strong> · ${assinantesData.length} total`;
-  const tbody=document.getElementById('a-tbody');
-  if(!list.length){tbody.innerHTML='<tr><td colspan="6" class="empty">Nenhum assinante encontrado</td></tr>';return;}
+  const ativos=_assinantes.filter(a=>a.ativo).length;
+  document.getElementById('a-count').innerHTML=`<b>${ativos} ativos</b> · ${_assinantes.length} total`;
+  const tbody=document.getElementById('a-body');
+  if(!list.length){tbody.innerHTML='<tr><td colspan="6" class="empty-c">Nenhum assinante encontrado</td></tr>';return;}
   tbody.innerHTML=list.map(a=>`
     <tr>
-      <td><div style="font-weight:600;font-size:12px">${a.nome}</div><div class="td-sub">${a.contato}</div></td>
-      <td><span class="canal-badge ${a.canal}">${a.canal.charAt(0).toUpperCase()+a.canal.slice(1)}</span></td>
-      <td style="color:var(--text2)">—</td>
-      <td style="color:var(--text2)">${fmtDate(a.criado_em)}</td>
-      <td><span class="status-pill ${a.ativo?'ativo':'pausado'}">${a.ativo?'Ativo':'Pausado'}</span></td>
-      <td>
-        <div class="action-btns">
-          <button class="act-btn" title="${a.ativo?'Pausar':'Ativar'}" onclick="toggleA(${a.id})">${a.ativo?'⏸':'▶'}</button>
-          <button class="act-btn del" title="Remover" onclick="removeA(${a.id})">✕</button>
-        </div>
-      </td>
+      <td><div class="td-name">${a.nome}</div><div class="td-sub">${a.contato}</div></td>
+      <td><span class="cbadge ${a.canal}">${a.canal.charAt(0).toUpperCase()+a.canal.slice(1)}</span></td>
+      <td style="color:var(--text2);font-weight:500">—</td>
+      <td style="color:var(--text2)">${fmtD(a.criado_em)}</td>
+      <td><span class="spill ${a.ativo?'ativo':'pausado'}">${a.ativo?'Ativo':'Pausado'}</span></td>
+      <td><div class="acts">
+        <button class="act" onclick="toggleA(${a.id})" title="${a.ativo?'Pausar':'Ativar'}">${a.ativo?'⏸':'▶'}</button>
+        <button class="act del" onclick="removeA(${a.id})" title="Remover">✕</button>
+      </div></td>
     </tr>`).join('');
 }
 
@@ -950,28 +974,27 @@ async function addAssinante(){
   const nome=document.getElementById('a-nome').value.trim();
   const canal=document.getElementById('a-canal').value;
   const contato=document.getElementById('a-contato').value.trim();
-  if(!nome||!contato){toast('Preencha nome e contato',false);return;}
+  if(!nome||!contato){showToast('Preencha nome e contato',false);return;}
   const r=await fetch('/api/assinantes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome,canal,contato})});
-  if(r.ok){document.getElementById('a-nome').value='';document.getElementById('a-contato').value='';await loadAssinantes();toast('✅ '+nome+' adicionado!');}
-  else{const e=await r.json();toast(e.detail||'Erro',false);}
+  if(r.ok){document.getElementById('a-nome').value='';document.getElementById('a-contato').value='';await loadA();showToast('✅ '+nome+' adicionado!');}
+  else{const e=await r.json();showToast(e.detail||'Erro',false);}
 }
 
 async function toggleA(id){
-  const r=await fetch('/api/assinantes/'+id+'/toggle',{method:'PATCH'});
-  if(r.ok){await loadAssinantes();toast('Status atualizado');}
+  await fetch('/api/assinantes/'+id+'/toggle',{method:'PATCH'});
+  await loadA(); showToast('Status atualizado');
 }
 
 async function removeA(id){
   if(!confirm('Remover este assinante?')) return;
-  const r=await fetch('/api/assinantes/'+id,{method:'DELETE'});
-  if(r.ok){await loadAssinantes();toast('Assinante removido');}
+  await fetch('/api/assinantes/'+id,{method:'DELETE'});
+  await loadA(); showToast('Assinante removido');
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-const today=new Date().toISOString().split('T')[0];
-document.getElementById('s-data').value=today;
-loadDashboard();
-setInterval(loadDashboard,30000);
+document.getElementById('s-dt').value=new Date().toISOString().split('T')[0];
+loadDash();
+setInterval(loadDash,30000);
 </script>
 </body>
 </html>
