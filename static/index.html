@@ -88,6 +88,23 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .inp-plain{background:#080910;border:1px solid var(--border2);border-radius:9px;padding:9px 12px;color:var(--text);font-size:12px;font-family:inherit;outline:none;transition:.18s;width:100%}
 .inp-plain:focus{border-color:var(--purple3);box-shadow:0 0 0 2px rgba(124,58,237,0.12)}
 .inp-plain::placeholder{color:var(--muted)}
+
+/* ── AUTOCOMPLETE ── */
+.ac-drop{position:absolute;top:calc(100% + 3px);left:0;right:0;background:#0a0b14;border:1px solid rgba(124,58,237,0.35);border-radius:10px;max-height:240px;overflow-y:auto;z-index:300;display:none;box-shadow:0 8px 28px rgba(0,0,0,0.65)}
+.ac-drop.show{display:block}
+.ac-drop::-webkit-scrollbar{width:3px}
+.ac-drop::-webkit-scrollbar-thumb{background:rgba(124,58,237,0.3);border-radius:99px}
+.ac-sep{padding:6px 12px 3px;font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;pointer-events:none}
+.ac-item{padding:8px 12px;cursor:pointer;display:flex;align-items:center;gap:9px;transition:background .1s}
+.ac-item:hover,.ac-item.on{background:rgba(124,58,237,0.12)}
+.ac-item.grp-item{background:rgba(124,58,237,0.04);border-bottom:1px solid rgba(255,255,255,0.04)}
+.ac-item.grp-item:hover,.ac-item.grp-item.on{background:rgba(124,58,237,0.14)}
+.ac-code{font-size:11px;font-weight:700;color:var(--text);font-family:monospace;background:rgba(255,255,255,0.07);padding:2px 7px;border-radius:5px;flex-shrink:0;min-width:36px;text-align:center;letter-spacing:.04em}
+.ac-code.grp{background:rgba(124,58,237,0.2);color:var(--purple3)}
+.ac-lbl{font-size:11px;color:var(--text2);line-height:1.35}
+.ac-sub{font-size:10px;color:var(--muted);display:block;margin-top:1px}
+.ac-hint{font-size:10px;color:var(--purple3);min-height:14px;margin-top:3px;padding:0 2px}
+
 .btn-p{background:var(--purple);border:none;border-radius:9px;padding:9px 22px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.18s;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 2px 12px rgba(124,58,237,0.3)}
 .btn-p:hover{background:var(--purple2);box-shadow:0 4px 16px rgba(124,58,237,0.4);transform:translateY(-1px)}
 .btn-p:active{transform:translateY(0)}
@@ -174,7 +191,7 @@ tbody tr:last-child td{border-bottom:none}
 .cfg2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .cfg-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 24px}
 
-.route-add{display:flex;gap:8px;align-items:center;margin-bottom:14px}
+.route-add{display:flex;gap:8px;align-items:flex-start;margin-bottom:14px}
 .arr-sep{color:var(--muted);font-size:14px;flex-shrink:0}
 .route-ls{display:flex;flex-direction:column;gap:7px}
 .route-row{display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,0.18);border:1px solid var(--border);border-radius:9px;padding:10px 14px;transition:.15s}
@@ -361,15 +378,17 @@ tbody tr:last-child td{border-bottom:none}
           <div class="sf-lbl">Origem</div>
           <div class="inp-wrap">
             <span class="inp-ico">📍</span>
-            <input class="inp" id="s-ori" placeholder="São Paulo (GRU)">
+            <input class="inp" id="s-ori" placeholder="São Paulo (GRU)" autocomplete="off">
           </div>
+          <div class="ac-hint" id="h-s-ori"></div>
         </div>
         <div class="sf">
           <div class="sf-lbl">Destino</div>
           <div class="inp-wrap">
             <span class="inp-ico">📍</span>
-            <input class="inp" id="s-dst" placeholder="Lisboa (LIS)">
+            <input class="inp" id="s-dst" placeholder="Lisboa (LIS)" autocomplete="off">
           </div>
+          <div class="ac-hint" id="h-s-dst"></div>
         </div>
         <div class="sf">
           <div class="sf-lbl">Data</div>
@@ -529,9 +548,19 @@ tbody tr:last-child td{border-bottom:none}
       <div class="cfg-box">
         <div class="sec-ttl">🗺️ Rotas Monitoradas</div>
         <div class="route-add">
-          <input class="inp-plain" id="r-ori" placeholder="Origem" oninput="this.value=this.value.toUpperCase()" style="flex:1">
-          <span class="arr-sep">→</span>
-          <input class="inp-plain" id="r-dst" placeholder="Destino" oninput="this.value=this.value.toUpperCase()" style="flex:1">
+          <div style="flex:1">
+            <div style="position:relative">
+              <input class="inp-plain" id="r-ori" placeholder="Cidade ou IATA (ex: RIO, POA)" autocomplete="off" style="width:100%">
+            </div>
+            <div class="ac-hint" id="h-r-ori"></div>
+          </div>
+          <span class="arr-sep" style="margin-top:9px">→</span>
+          <div style="flex:1">
+            <div style="position:relative">
+              <input class="inp-plain" id="r-dst" placeholder="Cidade ou IATA (ex: PAR, GIG)" autocomplete="off" style="width:100%">
+            </div>
+            <div class="ac-hint" id="h-r-dst"></div>
+          </div>
           <button class="btn-p" style="padding:9px 16px;font-size:11px" onclick="addRota()">+ Adicionar</button>
         </div>
         <div class="route-ls" id="route-ls">
@@ -878,7 +907,7 @@ async function addRota(){
   const d=document.getElementById('r-dst').value.trim().toUpperCase();
   if(o.length<3||d.length<3){showToast('Insira códigos IATA válidos (3 letras)',false);return;}
   const r=await fetch('/api/config/rotas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({origem:o,destino:d})});
-  if(r.ok){const c=await r.json();renderRoutes(c.rotas||[]);document.getElementById('r-ori').value='';document.getElementById('r-dst').value='';showToast('✅ Rota '+o+'→'+d+' adicionada!');}
+  if(r.ok){const c=await r.json();renderRoutes(c.rotas||[]);document.getElementById('r-ori').value='';document.getElementById('r-dst').value='';document.getElementById('h-r-ori').textContent='';document.getElementById('h-r-dst').textContent='';showToast('✅ Rota '+o+'→'+d+' adicionada!');}
   else{const e=await r.json();showToast(e.detail||'Erro',false);}
 }
 
@@ -991,10 +1020,129 @@ async function removeA(id){
   await loadA(); showToast('Assinante removido');
 }
 
+// ── AIRPORT AUTOCOMPLETE ──────────────────────────────────────────────────────
+let _AP={}, _GR={};
+
+async function _loadAP(){
+  try{
+    const [ap,gr]=await Promise.all([
+      fetch('/api/config/airports').then(r=>r.json()),
+      fetch('/api/config/groups').then(r=>r.json()),
+    ]);
+    _AP=ap; _GR=gr;
+  }catch(e){console.warn('Airport data unavailable',e);}
+}
+
+function _acItems(q){
+  if(!q||q.length<1) return [];
+  const u=q.toUpperCase();
+  const res=[];
+  // groups first
+  for(const [code,info] of Object.entries(_GR)){
+    if(code.startsWith(u)||info.nome.toUpperCase().includes(u))
+      res.push({code,isGroup:true,nome:info.nome,apts:info.aeroportos});
+  }
+  // individual airports
+  for(const [code,name] of Object.entries(_AP)){
+    if(code.startsWith(u)||name.toUpperCase().includes(u))
+      res.push({code,isGroup:false,nome:name});
+  }
+  return res.slice(0,28);
+}
+
+function _acRender(drop,items,inp){
+  if(!items.length){drop.classList.remove('show');return;}
+  const hasG=items.some(i=>i.isGroup), hasA=items.some(i=>!i.isGroup);
+  let h='';
+  if(hasG){
+    h+='<div class="ac-sep">🏙️ Cidades — todos os aeroportos</div>';
+    items.filter(i=>i.isGroup).forEach(i=>{
+      h+=`<div class="ac-item grp-item" data-code="${i.code}">
+        <span class="ac-code grp">${i.code}</span>
+        <div><span class="ac-lbl">${i.nome} <span style="color:var(--purple3);font-size:10px">(todos)</span></span>
+          <span class="ac-sub">${i.apts.join(' · ')}</span></div>
+      </div>`;
+    });
+  }
+  if(hasA){
+    h+=`<div class="ac-sep" style="margin-top:${hasG?4:0}px">✈️ Aeroportos</div>`;
+    items.filter(i=>!i.isGroup).forEach(i=>{
+      h+=`<div class="ac-item" data-code="${i.code}">
+        <span class="ac-code">${i.code}</span>
+        <span class="ac-lbl">${i.nome}</span>
+      </div>`;
+    });
+  }
+  drop.innerHTML=h;
+  drop.classList.add('show');
+  drop.querySelectorAll('.ac-item').forEach(el=>{
+    el.addEventListener('mousedown',e=>{
+      e.preventDefault();
+      inp.value=el.dataset.code;
+      drop.classList.remove('show');
+      _acHint(inp);
+    });
+  });
+}
+
+function _acHint(inp){
+  const hid=inp.dataset.hintId;
+  if(!hid) return;
+  const hel=document.getElementById(hid);
+  if(!hel) return;
+  const v=inp.value.toUpperCase();
+  if(_GR[v]) hel.innerHTML=`🏙️ ${_GR[v].nome} · ${_GR[v].aeroportos.join(', ')}`;
+  else if(_AP[v]) hel.innerHTML=`✈️ ${_AP[v]}`;
+  else if(v.length===3) hel.innerHTML=`<span style="color:var(--muted)">Código não encontrado</span>`;
+  else hel.textContent='';
+}
+
+function initAC(inp,hintId){
+  inp.dataset.hintId=hintId||'';
+  const parent=inp.parentElement;
+  const drop=document.createElement('div');
+  drop.className='ac-drop';
+  parent.appendChild(drop);
+
+  let _selIdx=-1;
+
+  inp.addEventListener('input',()=>{
+    inp.value=inp.value.toUpperCase();
+    _acRender(drop,_acItems(inp.value),inp);
+    _selIdx=-1;
+    _acHint(inp);
+  });
+  inp.addEventListener('focus',()=>{
+    if(inp.value.length>=1) _acRender(drop,_acItems(inp.value),inp);
+  });
+  inp.addEventListener('blur',()=>setTimeout(()=>drop.classList.remove('show'),160));
+  inp.addEventListener('keydown',e=>{
+    const its=[...drop.querySelectorAll('.ac-item')];
+    if(e.key==='ArrowDown'){e.preventDefault();_selIdx=Math.min(_selIdx+1,its.length-1);}
+    else if(e.key==='ArrowUp'){e.preventDefault();_selIdx=Math.max(_selIdx-1,0);}
+    else if(e.key==='Enter'&&_selIdx>=0&&its[_selIdx]){
+      e.preventDefault();
+      inp.value=its[_selIdx].dataset.code;
+      drop.classList.remove('show');
+      _selIdx=-1;
+      _acHint(inp);
+      return;
+    }else if(e.key==='Escape'){drop.classList.remove('show');_selIdx=-1;return;}
+    its.forEach((el,i)=>el.classList.toggle('on',i===_selIdx));
+    if(its[_selIdx]) its[_selIdx].scrollIntoView({block:'nearest'});
+  });
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 document.getElementById('s-dt').value=new Date().toISOString().split('T')[0];
 loadDash();
 setInterval(loadDash,30000);
+_loadAP().then(()=>{
+  initAC(document.getElementById('r-ori'),'h-r-ori');
+  initAC(document.getElementById('r-dst'),'h-r-dst');
+  initAC(document.getElementById('s-ori'),'h-s-ori');
+  initAC(document.getElementById('s-dst'),'h-s-dst');
+});
 </script>
 </body>
 </html>
