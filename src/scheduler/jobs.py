@@ -14,18 +14,14 @@ log = get_logger()
 
 
 def _cfg():
-    """Lê user_config.json sempre fresco — nunca usa cache do startup."""
-    import json, os
-    from config import USER_CONFIG_PATH, _DEFAULTS
-    if os.path.exists(USER_CONFIG_PATH):
-        with open(USER_CONFIG_PATH, "r", encoding="utf-8") as f:
-            uc = json.load(f)
-    else:
-        uc = {}
+    """Lê configuração do banco de dados — persiste entre redeploys."""
+    from src.database.queries import get_config_db
+    from config import _DEFAULTS
+    db_cfg = get_config_db()
     return {
-        "rotas": uc.get("rotas", _DEFAULTS["rotas"]),
-        "dias_antecedencia": uc.get("dias_antecedencia", _DEFAULTS["dias_antecedencia"]),
-        "threshold_desconto": uc.get("threshold_desconto", _DEFAULTS["threshold_desconto"]),
+        "rotas": db_cfg.get("rotas", _DEFAULTS["rotas"]),
+        "dias_antecedencia": db_cfg.get("dias_antecedencia", _DEFAULTS["dias_antecedencia"]),
+        "threshold_desconto": db_cfg.get("threshold_desconto", _DEFAULTS["threshold_desconto"]),
     }
 
 

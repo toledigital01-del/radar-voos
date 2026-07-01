@@ -1,6 +1,7 @@
+import json
 from sqlalchemy import func
 from datetime import datetime, timedelta
-from src.database.models import Session, HistoricoPreco, Alerta, Assinante
+from src.database.models import Session, HistoricoPreco, Alerta, Assinante, Configuracao
 
 
 def salvar_preco(dados: dict):
@@ -81,6 +82,37 @@ def listar_assinantes(canal: str = None) -> list:
         resultados = query.all()
         session.expunge_all()
         return resultados
+    finally:
+        session.close()
+
+
+def get_config_db() -> dict:
+    """Lê configuração persistida no banco de dados."""
+    session = Session()
+    try:
+        rows = session.query(Configuracao).all()
+        return {row.chave: json.loads(row.valor) for row in rows}
+    except Exception:
+        return {}
+    finally:
+        session.close()
+
+
+def set_config_db(cfg: dict):
+    """Salva (upsert) configuração no banco de dados."""
+    session = Session()
+    try:
+        for chave, valor in cfg.items():
+            row = session.query(Configuracao).filter_by(chave=chave).first()
+            encoded = json.dumps(valor, ensure_ascii=False)
+            if row:
+                row.valor = encoded
+            else:
+                session.add(Configuracao(chave=chave, valor=encoded))
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        print(f"❌ Erro ao salvar config no DB: {e}")
     finally:
         session.close()
 

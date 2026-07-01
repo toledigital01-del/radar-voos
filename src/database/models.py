@@ -58,6 +58,14 @@ class Assinante(Base):
     criado_em = Column(DateTime, default=now_brasilia)
 
 
+class Configuracao(Base):
+    """Armazena configurações persistentes do sistema (rotas, thresholds, etc.)."""
+    __tablename__ = "configuracoes"
+
+    chave = Column(String(100), primary_key=True)
+    valor = Column(Text, nullable=False)
+
+
 def criar_tabelas():
     Base.metadata.create_all(engine)
     print("✅ Tabelas criadas com sucesso!")

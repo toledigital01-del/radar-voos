@@ -304,14 +304,32 @@ def _gen_js_groups() -> str:
 # ── helpers de config ─────────────────────────────────────────────────────────
 
 def _read_config() -> dict:
+    from src.database.queries import get_config_db
+    db_cfg = get_config_db()
+    if db_cfg:
+        merged = dict(_DEFAULTS)
+        merged.update(db_cfg)
+        return merged
+    # Migração: arquivo existe → salva no DB e retorna
     if os.path.exists(USER_CONFIG_PATH):
-        with open(USER_CONFIG_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            with open(USER_CONFIG_PATH, "r", encoding="utf-8") as f:
+                file_cfg = json.load(f)
+            _write_config(file_cfg)
+            return file_cfg
+        except Exception:
+            pass
     return dict(_DEFAULTS)
 
 def _write_config(cfg: dict):
-    with open(USER_CONFIG_PATH, "w", encoding="utf-8") as f:
-        json.dump(cfg, f, ensure_ascii=False, indent=2)
+    from src.database.queries import set_config_db
+    set_config_db(cfg)
+    # Salva no arquivo também (útil para dev local)
+    try:
+        with open(USER_CONFIG_PATH, "w", encoding="utf-8") as f:
+            json.dump(cfg, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
 
 # ── modelos Pydantic ──────────────────────────────────────────────────────────
 
