@@ -1243,6 +1243,45 @@ def testar_alerta():
         raise HTTPException(status_code=500, detail=f"Erro de conexão: {e}")
 
 
+class BuscarParams(BaseModel):
+    origem: str
+    destino: str
+    data: str = ""
+
+@app.post("/api/buscar")
+def buscar_rota(p: BuscarParams):
+    """Busca voos para uma rota/data específica e salva no histórico."""
+    from datetime import date as _date
+    from src.scrapers.amadeus import buscar_voos
+    from src.scheduler.jobs import expandir_rotas
+    from src.database.queries import salvar_preco
+
+    origem = p.origem.upper().strip()
+    destino = p.destino.upper().strip()
+    if not origem or not destino:
+        raise HTTPException(status_code=400, detail="Origem e destino são obrigatórios")
+
+    data = p.data or _date.today().isoformat()
+    rotas = expandir_rotas([{"origem": origem, "destino": destino}])
+
+    resultados = []
+    for rota in rotas:
+        try:
+            voos = buscar_voos(rota["origem"], rota["destino"], data)
+            for v in voos:
+                salvar_preco(v)
+            resultados.extend(voos)
+        except Exception as e:
+            print(f"Erro ao buscar {rota['origem']}→{rota['destino']}: {e}")
+
+    return {
+        "ok": True,
+        "rotas_buscadas": [f"{r['origem']}→{r['destino']}" for r in rotas],
+        "total": len(resultados),
+        "resultados": resultados,
+    }
+
+
 @app.post("/api/verificar")
 def verificar_rotas():
     import threading

@@ -837,8 +837,26 @@ function updateChart(){
 }
 
 async function verificar(){
-  showToast('Verificação iniciada em background...');
-  try{await fetch('/api/verificar',{method:'POST'});}catch(e){}
+  const ori=document.getElementById('s-ori').value.trim().toUpperCase();
+  const dst=document.getElementById('s-dst').value.trim().toUpperCase();
+  const dt=document.getElementById('s-dt').value;
+  if(ori.length>=3 && dst.length>=3){
+    const btn=document.querySelector('.serp-form .btn-p');
+    const orig=btn.innerHTML; btn.innerHTML='<span class="spin"></span> Buscando...'; btn.disabled=true;
+    try{
+      const r=await fetch('/api/buscar',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({origem:ori,destino:dst,data:dt})});
+      const j=await r.json();
+      if(r.ok){
+        showToast(j.total>0?`✅ ${j.total} voo(s) encontrado(s) em ${j.rotas_buscadas.join(', ')}`:'⚠️ Nenhum voo encontrado para essa rota/data');
+        if(j.total>0) setTimeout(loadDash,1200);
+      }else{showToast('❌ '+(j.detail||'Erro na busca'),false);}
+    }catch(e){showToast('❌ '+e.message,false);}
+    finally{btn.innerHTML=orig;btn.disabled=false;}
+  }else{
+    showToast('Verificação completa iniciada em background...');
+    try{await fetch('/api/verificar',{method:'POST'});}catch(e){}
+  }
 }
 
 // ── CONFIGURAÇÕES ─────────────────────────────────────────────────────────────
