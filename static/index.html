@@ -950,16 +950,24 @@ function activateCh(ch){
   document.getElementById('ch-'+ch).classList.add('on');
   const s=document.getElementById('ch-'+ch+'-s');
   s.className='ch-status on'; s.textContent='● Ativo';
-  document.getElementById('cfg-'+ch).classList.add('show');
+  // não abre automaticamente — usuário clica para ver config
 }
 
 function toggleCh(ch){
-  const card=document.getElementById('ch-'+ch);
-  const on=card.classList.toggle('on');
-  const s=document.getElementById('ch-'+ch+'-s');
-  const cfg=document.getElementById('cfg-'+ch);
-  if(on){s.className='ch-status on';s.textContent='● Ativo';cfg.classList.add('show');}
-  else{s.className='ch-status off';s.textContent='○ Inativo';cfg.classList.remove('show');}
+  const isOpen=document.getElementById('cfg-'+ch).classList.contains('show');
+  // fecha todos
+  ['tg','wa','em'].forEach(c=>{
+    document.getElementById('ch-'+c).classList.remove('on');
+    document.getElementById('cfg-'+c).classList.remove('show');
+    const s=document.getElementById('ch-'+c+'-s');
+    if(!['tg','wa','em'].includes(c)) return;
+    // mantém badge "Ativo" se canal estiver configurado
+  });
+  // se estava fechado, abre o clicado
+  if(!isOpen){
+    document.getElementById('ch-'+ch).classList.add('on');
+    document.getElementById('cfg-'+ch).classList.add('show');
+  }
 }
 
 function renderRoutes(rotas){
