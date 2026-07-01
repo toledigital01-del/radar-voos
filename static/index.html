@@ -3,1031 +3,975 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Radar Voos — Dashboard</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<title>Radar Voos</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#08091e;--card:#0f1330;--card2:#121638;
-  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
-  --purple:#7c3aed;--purple2:#6d28d9;--violet:#8b5cf6;
-  --green:#10b981;--blue:#3b82f6;--amber:#f59e0b;--red:#ef4444;
-  --text:#f0f4ff;--text2:#a8b4d0;--muted:#5a6580;
-  --hg:linear-gradient(135deg,#1a0a4b 0%,#0e0a35 50%,#0a1240 100%);
+  --bg:#0d0f1a;--card:#141830;--card2:#1a1f3a;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.12);
+  --purple:#7c3aed;--purple2:#6d28d9;--purple-dim:rgba(124,58,237,0.15);
+  --green:#10b981;--green-dim:rgba(16,185,129,0.12);
+  --teal:#06b6d4;--teal-dim:rgba(6,182,212,0.12);
+  --amber:#f59e0b;--amber-dim:rgba(245,158,11,0.12);
+  --blue:#3b82f6;--blue-dim:rgba(59,130,246,0.12);
+  --red:#ef4444;
+  --text:#f0f4ff;--text2:#a0aec0;--muted:#4a5568;
 }
-body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:13px}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:13px;line-height:1.5}
 
 /* ── HEADER ── */
-.hdr{background:var(--hg);border-bottom:1px solid rgba(124,58,237,.3);padding:14px 28px;display:flex;align-items:center;gap:12px}
-.h-ico{width:36px;height:36px;border-radius:10px;background:rgba(124,58,237,.35);border:1px solid rgba(124,58,237,.5);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.h-ttl{font-size:17px;font-weight:700;color:#fff}
-.h-sub{font-size:11px;color:#a8b4d0;margin-top:1px}
-.live{margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;color:var(--green);flex-shrink:0}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.3)}}
-
-/* ── NAV TABS ── */
-.nav{background:#0a0c22;border-bottom:1px solid var(--border);padding:0 28px;display:flex;gap:2px}
-.ntab{padding:11px 18px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;user-select:none;display:flex;align-items:center;gap:6px}
-.ntab:hover{color:var(--text2)}
-.ntab.on{color:var(--violet);border-bottom-color:var(--violet)}
+.hdr{background:rgba(13,15,26,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 28px;height:60px;display:flex;align-items:center;position:sticky;top:0;z-index:100}
+.hdr-brand{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+.hdr-ico{width:36px;height:36px;background:var(--purple);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.hdr-title{font-size:15px;font-weight:700;color:var(--text)}
+.hdr-sub{font-size:10px;color:var(--text2);margin-top:1px}
+.hdr-nav{display:flex;align-items:center;gap:2px;background:var(--card);border:1px solid var(--border);border-radius:99px;padding:3px;position:absolute;left:50%;transform:translateX(-50%)}
+.ntab{padding:6px 18px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;border-radius:99px;transition:.15s;user-select:none;display:flex;align-items:center;gap:6px;white-space:nowrap;border:none;background:transparent;font-family:inherit}
+.ntab:hover{color:var(--text)}
+.ntab.on{background:var(--purple);color:#fff}
+.hdr-live{margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:99px;padding:5px 12px;font-size:11px;font-weight:600;color:var(--green);flex-shrink:0;cursor:default}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
 
 /* ── PAGES ── */
 .page{display:none}.page.on{display:block}
-.wrap{max-width:1280px;margin:0 auto;padding:20px 24px}
+.wrap{max-width:1320px;margin:0 auto;padding:24px 28px}
 
 /* ── STAT CARDS ── */
-.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
-.sc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px}
-.sico{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
-.sico.b{background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.25)}
-.sico.p{background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.25)}
-.sico.g{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.25)}
-.sico.a{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.25)}
-.slbl{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
-.sval{font-size:22px;font-weight:700;color:var(--text);line-height:1}
-.ssub{font-size:10px;color:var(--text2);margin-top:3px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;display:flex;gap:14px;align-items:flex-start}
+.sc-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.sc-ico.blue{background:var(--blue-dim);border:1px solid rgba(59,130,246,0.2)}
+.sc-ico.teal{background:var(--teal-dim);border:1px solid rgba(6,182,212,0.2)}
+.sc-ico.green{background:var(--green-dim);border:1px solid rgba(16,185,129,0.2)}
+.sc-ico.amber{background:var(--amber-dim);border:1px solid rgba(245,158,11,0.2)}
+.sc-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.sc-val{font-size:28px;font-weight:700;color:var(--text);line-height:1;margin-bottom:4px}
+.sc-sub{font-size:11px;color:var(--text2)}
 
 /* ── SERPAPI CARD ── */
-.srp{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:16px}
-.srp-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.srp-ttl{font-size:13px;font-weight:600;color:var(--text)}
-.srp-sub{font-size:11px;color:var(--text2);margin-top:2px}
-.cbadge{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:var(--green);font-size:10px;font-weight:600;padding:3px 8px;border-radius:6px;margin-left:8px}
-.srp-row{display:flex;gap:10px;align-items:flex-end}
-.sf{display:flex;flex-direction:column;gap:4px;flex:1}
-.sflbl{font-size:10px;color:var(--muted);font-weight:500;letter-spacing:.04em}
-.inp{background:#080b1e;border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-size:12px;font-family:inherit;outline:none;transition:.15s;width:100%}
-.inp:focus{border-color:var(--violet);box-shadow:0 0 0 2px rgba(139,92,246,.15)}
+.serp-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:16px}
+.serp-top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.serp-ico{width:32px;height:32px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.serp-info{flex:1}
+.serp-title{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.serp-desc{font-size:11px;color:var(--text2);margin-top:2px}
+.badge-connected{background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:var(--green);font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;display:inline-flex;align-items:center;gap:4px}
+.badge-connected::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green)}
+.btn-outline{background:transparent;border:1px solid var(--border2);border-radius:8px;padding:7px 14px;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.btn-outline:hover{border-color:var(--purple);color:var(--text)}
+.serp-form{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end}
+.sf-field{display:flex;flex-direction:column;gap:5px}
+.sf-lbl{font-size:10px;font-weight:500;color:var(--text2);letter-spacing:.04em}
+.inp{background:#080a17;border:1px solid var(--border2);border-radius:8px;padding:9px 12px 9px 34px;color:var(--text);font-size:12px;font-family:inherit;outline:none;transition:.15s;width:100%}
+.inp:focus{border-color:var(--purple);box-shadow:0 0 0 2px rgba(124,58,237,0.15)}
 .inp::placeholder{color:var(--muted)}
-.btn-g{background:transparent;border:1px solid var(--border2);border-radius:8px;padding:8px 14px;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;transition:.15s}
-.btn-g:hover{border-color:var(--violet);color:var(--text)}
-.btn-p{background:var(--purple);border:none;border-radius:8px;padding:8px 18px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:.15s}
-.btn-p:hover{background:var(--purple2)}
-.btn-sm{background:transparent;border:1px solid var(--border2);border-radius:7px;padding:6px 12px;color:var(--text2);font-size:11px;font-weight:500;cursor:pointer;font-family:inherit;transition:.15s}
-.btn-sm:hover{border-color:var(--violet);color:var(--text)}
+.inp-wrap{position:relative}
+.inp-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}
+.inp-plain{background:#080a17;border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:12px;font-family:inherit;outline:none;transition:.15s;width:100%}
+.inp-plain:focus{border-color:var(--purple);box-shadow:0 0 0 2px rgba(124,58,237,0.15)}
+.btn-purple{background:var(--purple);border:none;border-radius:8px;padding:9px 20px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-purple:hover{background:var(--purple2)}
 
-/* ── CHART ── */
-.two-col{display:grid;grid-template-columns:1fr 370px;gap:14px;margin-bottom:16px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px}
-.ch-card{padding:16px 18px}
-.ch-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
-.ch-ttl{font-size:13px;font-weight:600;color:var(--text)}
-.ch-sub{font-size:10px;color:var(--muted);margin-top:2px}
-.rsel{background:#080b1e;border:1px solid var(--border2);border-radius:7px;padding:5px 10px;color:var(--text2);font-size:11px;font-family:inherit;outline:none;cursor:pointer}
-.ch-area{position:relative;height:200px}
-.al-card{padding:16px 18px;overflow:hidden}
-.al-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.al-ttl{font-size:13px;font-weight:600;color:var(--text)}
-.al-cnt{font-size:10px;color:var(--muted);background:var(--card2);border:1px solid var(--border);border-radius:5px;padding:2px 7px}
-.al-list{display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto}
-.al-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:var(--card2);border:1px solid var(--border)}
-.al-info{flex:1;min-width:0}
-.al-rt{font-weight:600;font-size:12px;color:var(--text)}
-.al-pr{font-size:11px;color:var(--text2);margin-top:1px}
-.al-tm{font-size:10px;color:var(--muted);white-space:nowrap}
-.al-ri{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
-.offer-btn{font-size:10px;font-weight:600;color:var(--violet);text-decoration:none;white-space:nowrap;padding:3px 7px;border:1px solid rgba(139,92,246,.3);border-radius:5px;background:rgba(139,92,246,.08)}
+/* ── TWO COL ── */
+.two-col{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;margin-bottom:16px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-ttl{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:8px}
+.card-ttl svg{opacity:.6}
+.rsel{background:#080a17;border:1px solid var(--border2);border-radius:7px;padding:5px 10px;color:var(--text2);font-size:11px;font-family:inherit;outline:none;cursor:pointer}
+.alerts-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;overflow:hidden}
+.alert-list{display:flex;flex-direction:column;gap:1px;max-height:260px;overflow-y:auto}
+.alert-list::-webkit-scrollbar{width:4px}
+.alert-list::-webkit-scrollbar-track{background:transparent}
+.alert-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+.al-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;transition:.15s}
+.al-item:hover{background:var(--card2)}
+.al-route{font-weight:600;font-size:12px;color:var(--text)}
+.al-info{font-size:10px;color:var(--text2);margin-top:2px}
+.disc-badge{background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);color:var(--green);font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px}
+.disc-badge.red{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.25);color:var(--red)}
+.offer-link{font-size:11px;font-weight:500;color:var(--purple);text-decoration:none;white-space:nowrap;opacity:.8;transition:.15s}
+.offer-link:hover{opacity:1}
+.al-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 
-/* ── TABLES ── */
-.tcrd{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden}
-.tcrd-hdr{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
-.tcrd-ttl{font-size:13px;font-weight:600;color:var(--text)}
-.tcrd-sub{font-size:10px;color:var(--muted)}
+/* ── ROUTES TABLE ── */
+.table-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px}
+.table-card-hdr{padding:14px 20px;border-bottom:1px solid var(--border)}
 table{width:100%;border-collapse:collapse}
-th{padding:9px 14px;text-align:left;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:#0a0d23;border-bottom:1px solid var(--border)}
-td{padding:10px 14px;font-size:12px;border-bottom:1px solid rgba(255,255,255,.04)}
-tr:last-child td{border-bottom:none}
-tbody tr:hover{background:rgba(255,255,255,.03)}
-tbody tr.hl{background:rgba(16,185,129,.05)}
-tbody tr.hl:hover{background:rgba(16,185,129,.09)}
-.iata{font-size:13px;font-weight:700}
-.arr{color:var(--muted);font-size:11px;margin:0 2px}
-.disc{display:inline-flex;align-items:center;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.25);color:var(--green);font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px}
-.disc.up{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.2);color:var(--red)}
-.cp{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:5px}
-.cp.whatsapp{background:rgba(16,185,129,.12);color:#34d399;border:1px solid rgba(16,185,129,.2)}
-.cp.telegram{background:rgba(59,130,246,.12);color:#60a5fa;border:1px solid rgba(59,130,246,.2)}
-.cp.email{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.2)}
-.st-btn{font-size:10px;font-weight:600;padding:3px 9px;border-radius:5px;border:1px solid rgba(16,185,129,.3);background:rgba(16,185,129,.1);color:var(--green);cursor:pointer;font-family:inherit}
-.st-btn.off{border-color:var(--border);background:transparent;color:var(--muted)}
-.ab{background:transparent;border:1px solid var(--border);border-radius:5px;padding:3px 8px;font-size:10px;color:var(--text2);cursor:pointer;font-family:inherit;transition:.1s}
-.ab:hover{border-color:var(--border2);color:var(--text)}
-.db{background:transparent;border:1px solid rgba(239,68,68,.2);border-radius:5px;padding:3px 7px;font-size:11px;color:rgba(239,68,68,.6);cursor:pointer;font-family:inherit;transition:.1s}
-.db:hover{border-color:var(--red);color:var(--red)}
-.sub-bar{padding:10px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
-.ftabs{display:flex;gap:4px}
-.ftab{background:transparent;border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;font-family:inherit;transition:.1s}
-.ftab:hover{border-color:var(--border2);color:var(--text2)}
-.ftab.on{background:var(--purple);border-color:var(--purple);color:#fff}
+th{padding:10px 16px;text-align:left;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;background:rgba(0,0,0,0.2);border-bottom:1px solid var(--border)}
+td{padding:12px 16px;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.03)}
+tbody tr{transition:background .1s}
+tbody tr:hover{background:rgba(255,255,255,0.02)}
+tbody tr:last-child td{border-bottom:none}
+.td-route{font-weight:600;font-size:13px;color:var(--text);display:flex;align-items:center;gap:6px}
+.td-route .arr{color:var(--muted)}
+.td-price{font-weight:600}
+.td-price.deal{color:var(--green)}
+.td-price.normal{color:var(--text)}
+.td-avg{color:var(--text2)}
+.td-co{color:var(--text2)}
+.td-time{color:var(--muted);font-size:11px}
+.empty-row{text-align:center;padding:32px;color:var(--muted)}
 
-/* ── CONFIGS PAGE ── */
-.cfg-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
-.cfg-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
-.cfg-card.full{grid-column:1/-1}
-.cfg-ttl{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:8px}
-.cfg-sub{font-size:11px;color:var(--muted);margin-bottom:18px}
-.field{margin-bottom:14px}
-.flbl{font-size:11px;color:var(--text2);font-weight:500;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between}
-.fhint{font-size:10px;color:var(--muted);font-weight:400}
-.env-tag{font-size:10px;color:var(--violet);background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);border-radius:4px;padding:1px 6px;font-family:monospace}
-.inp-row{display:flex;gap:8px}
-.inp-row .inp{flex:1}
+/* ── CONFIGURAÇÕES ── */
+.cfg-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 24px;margin-bottom:14px}
+.cfg-hdr{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.ch-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:4px}
+.ch-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:.2s;position:relative}
+.ch-card:hover{border-color:var(--border2)}
+.ch-card.active{border-color:rgba(59,130,246,0.5);background:rgba(59,130,246,0.05)}
+.ch-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ch-ico{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.ch-ico.tg{background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.2)}
+.ch-ico.wa{background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.2)}
+.ch-ico.em{background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.2)}
+.ch-status{font-size:10px;font-weight:600;display:flex;align-items:center;gap:4px}
+.ch-status.on{color:var(--green)}
+.ch-status.off{color:var(--muted)}
+.ch-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+.ch-desc{font-size:11px;color:var(--text2)}
 
-/* ── CHANNEL TOGGLES ── */
-.ch-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
-.ch-crd{border:2px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:.2s;user-select:none;position:relative}
-.ch-crd:hover{border-color:var(--border2)}
-.ch-crd.active.tg{border-color:rgba(59,130,246,.5);background:rgba(59,130,246,.05)}
-.ch-crd.active.wa{border-color:rgba(37,211,102,.5);background:rgba(37,211,102,.05)}
-.ch-crd.active.em{border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.05)}
-.ch-ico{font-size:28px;margin-bottom:8px}
-.ch-name{font-size:13px;font-weight:600;color:var(--text)}
-.ch-desc{font-size:11px;color:var(--muted);margin-top:3px}
-.ch-chk{position:absolute;top:10px;right:10px;width:18px;height:18px;border-radius:50%;border:2px solid var(--border2);background:transparent;display:flex;align-items:center;justify-content:center;font-size:10px}
-.ch-crd.active .ch-chk{background:var(--green);border-color:var(--green);color:#fff}
+.tg-cfg{background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:12px;padding:18px;margin-top:14px;display:none}
+.tg-cfg.show{display:block}
+.tg-cfg-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.tg-cfg-title{font-size:12px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.status-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;border:1px solid}
+.status-badge.untested{background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.3);color:var(--amber)}
+.status-badge.ok{background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.3);color:var(--green)}
+.status-badge.err{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);color:var(--red)}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:5px}
+.flbl{font-size:10px;font-weight:500;color:var(--text2);display:flex;align-items:center;gap:6px}
+.env-tag{font-size:9px;background:rgba(255,255,255,0.06);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;color:var(--muted);font-family:monospace}
+.btn-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.test-result{margin-top:10px;padding:8px 12px;border-radius:8px;font-size:11px;display:none}
+.test-result.ok{background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);color:#6ee7b7}
+.test-result.err{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);color:#fca5a5}
+.test-result.warn{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);color:#fcd34d}
 
-/* ── TOGGLE SWITCH ── */
-.trow{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.trow-lbl{font-size:12px;font-weight:500;color:var(--text2)}
-.trow-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.cfg-two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cfg-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 24px}
+
+.route-form{display:flex;gap:8px;align-items:center;margin-bottom:14px}
+.route-form .inp-plain{flex:1}
+.arr-ico{color:var(--muted);font-size:14px;flex-shrink:0}
+.route-list{display:flex;flex-direction:column;gap:6px}
+.route-item{display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:8px;padding:10px 14px}
+.route-lbl{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.btn-icon{background:transparent;border:none;color:var(--muted);cursor:pointer;padding:4px;border-radius:6px;transition:.15s;font-size:14px}
+.btn-icon:hover{color:var(--red);background:rgba(239,68,68,0.1)}
+
+.days-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.day-chip{background:rgba(0,0,0,0.3);border:1px solid var(--border2);border-radius:99px;padding:5px 14px;font-size:11px;font-weight:500;color:var(--text2);cursor:pointer;transition:.15s;user-select:none}
+.day-chip.on{background:var(--purple);border-color:var(--purple);color:#fff}
+.day-chip:hover:not(.on){border-color:var(--purple);color:var(--text)}
+
+.param-group{margin-bottom:18px}
+.param-lbl{font-size:11px;font-weight:500;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.param-val{font-size:13px;font-weight:700;color:var(--purple)}
+.slider{width:100%;accent-color:var(--purple);cursor:pointer;height:4px}
+.select{background:#080a17;border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:12px;font-family:inherit;outline:none;cursor:pointer;width:100%;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+
+.toggle-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.toggle-name{font-size:12px;color:var(--text)}
 .toggle{position:relative;width:40px;height:22px;flex-shrink:0}
-.toggle input{display:none}
-.toggle-track{position:absolute;inset:0;border-radius:11px;background:var(--card2);border:1px solid var(--border2);transition:.2s;cursor:pointer}
-.toggle input:checked+.toggle-track{background:var(--green);border-color:var(--green)}
-.toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.2s;pointer-events:none}
-.toggle input:checked~.toggle-thumb{left:21px}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;background:var(--card2);border:1px solid var(--border2);border-radius:99px;cursor:pointer;transition:.25s}
+.toggle input:checked+.toggle-track{background:var(--purple);border-color:var(--purple)}
+.toggle-track::before{content:'';position:absolute;width:16px;height:16px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.25s}
+.toggle input:checked+.toggle-track::before{transform:translateX(18px)}
 
-/* ── DIAS CHECKLIST ── */
-.dias-grid{display:flex;flex-wrap:wrap;gap:8px}
-.dchk{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer;background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:5px 10px;transition:.15s}
-.dchk:hover{border-color:var(--border2)}
-.dchk input{accent-color:var(--violet);width:13px;height:13px}
-.dchk input:checked+span{color:var(--text)}
+.btn-save-full{width:100%;padding:11px;font-size:13px;font-weight:600;background:var(--purple);border:none;border-radius:10px;color:#fff;cursor:pointer;font-family:inherit;transition:.15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-save-full:hover{background:var(--purple2)}
 
-/* ── ROTA MANAGER ── */
-.rota-list{display:flex;flex-direction:column;gap:7px;margin-top:12px;max-height:300px;overflow-y:auto}
-.rota-item{display:flex;align-items:center;justify-content:space-between;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:9px 12px}
-.rota-name{font-weight:600;font-size:13px;color:var(--text)}
-
-/* ── RANGE SLIDER ── */
-.range-row{display:flex;align-items:center;gap:12px}
-.range-row input[type=range]{flex:1;accent-color:var(--violet)}
-.range-val{font-size:14px;font-weight:700;color:var(--violet);min-width:40px;text-align:right}
-
-/* ── STATUS BADGE ── */
-.sbadge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:3px 9px;border-radius:6px}
-.sbadge.ok{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:var(--green)}
-.sbadge.err{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:var(--red)}
-.sbadge.warn{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);color:var(--amber)}
-
-/* ── TEST RESULT BOX ── */
-.test-box{margin-top:10px;padding:10px 12px;border-radius:8px;font-size:11px;display:none}
-.test-box.ok{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);color:#6ee7b7}
-.test-box.err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#fca5a5}
-
-/* ── ADD ASSINANTE ── */
-.add-sub-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+/* ── ASSINANTES ── */
+.add-form-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:14px}
+.add-form-row{display:grid;grid-template-columns:1fr auto 1fr auto;gap:10px;align-items:end}
+.list-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.list-hdr{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.list-count{font-size:11px;color:var(--text2)}
+.list-count strong{color:var(--green)}
+.filter-pills{display:flex;gap:4px;margin-left:auto}
+.fpill{background:transparent;border:1px solid var(--border2);border-radius:99px;padding:4px 12px;font-size:11px;font-weight:500;color:var(--text2);cursor:pointer;transition:.15s;font-family:inherit}
+.fpill.on{background:var(--purple);border-color:var(--purple);color:#fff}
+.fpill:hover:not(.on){border-color:var(--purple);color:var(--text)}
+.search-inp{background:#080a17;border:1px solid var(--border2);border-radius:8px;padding:5px 10px 5px 28px;color:var(--text);font-size:11px;font-family:inherit;outline:none;width:150px;position:relative}
+.search-wrap{position:relative;display:inline-flex;align-items:center}
+.search-ico{position:absolute;left:8px;color:var(--muted);font-size:12px;pointer-events:none}
+.canal-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;display:inline-block}
+.canal-badge.telegram{background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.25);color:#60a5fa}
+.canal-badge.whatsapp{background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);color:#34d399}
+.canal-badge.email{background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);color:#fbbf24}
+.status-pill{font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;display:inline-flex;align-items:center;gap:4px}
+.status-pill::before{content:'';width:5px;height:5px;border-radius:50%}
+.status-pill.ativo{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);color:var(--green)}
+.status-pill.ativo::before{background:var(--green)}
+.status-pill.pausado{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:var(--amber)}
+.status-pill.pausado::before{background:var(--amber)}
+.td-sub{font-size:10px;color:var(--text2);margin-top:2px}
+.action-btns{display:flex;gap:6px}
+.act-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:.15s}
+.act-btn:hover{border-color:var(--purple);color:var(--text)}
+.act-btn.del:hover{border-color:var(--red);color:var(--red)}
 
 /* ── TOAST ── */
-#toast{position:fixed;bottom:20px;right:20px;background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:10px 16px;font-size:12px;color:var(--text);transform:translateY(60px);opacity:0;transition:.25s;z-index:999;pointer-events:none;max-width:340px}
+#toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:12px 18px;font-size:12px;color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,0.4);transform:translateY(80px);opacity:0;transition:.3s cubic-bezier(.34,1.56,.64,1);z-index:999;max-width:320px}
 #toast.show{transform:translateY(0);opacity:1}
-#toast.ok{border-color:rgba(16,185,129,.4)}
-#toast.err{border-color:rgba(239,68,68,.4)}
+#toast.ok{border-color:rgba(16,185,129,0.4)}
+#toast.err{border-color:rgba(239,68,68,0.4)}
 
-/* ── SELECT STYLED ── */
-select.inp{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a6580'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+/* ── UTILS ── */
+.spin{display:inline-block;width:12px;height:12px;border:2px solid var(--border2);border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{color:var(--muted);text-align:center;padding:28px;font-size:12px}
+.section-note{font-size:10px;color:var(--muted);margin-top:8px}
 
-::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
-
-/* ── AUTOCOMPLETE ── */
-.ac-wrap{position:relative;flex:1}
-.ac-drop{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#080b1e;border:1px solid var(--border2);border-radius:10px;z-index:200;max-height:300px;overflow-y:auto;display:none;box-shadow:0 8px 32px rgba(0,0,0,.5)}
-.ac-drop.open{display:block}
-.ac-item{padding:9px 13px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);transition:.1s;display:flex;align-items:center;gap:10px}
-.ac-item:last-child{border-bottom:none}
-.ac-item:hover,.ac-item.hl{background:rgba(139,92,246,.12)}
-.ac-code{font-size:13px;font-weight:700;color:var(--violet);min-width:38px;font-family:monospace}
-.ac-info{flex:1;min-width:0}
-.ac-name{font-size:12px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ac-apts{font-size:10px;color:var(--muted);margin-top:1px}
-.ac-all{display:inline-flex;align-items:center;gap:3px;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:var(--green);font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;flex-shrink:0}
-.ac-empty{padding:12px 14px;font-size:11px;color:var(--muted);text-align:center}
-@media(max-width:900px){.sg{grid-template-columns:1fr 1fr}.two-col,.cfg-grid{grid-template-columns:1fr}.srp-row,.ch-cards,.add-sub-grid{flex-wrap:wrap}}
+@media(max-width:1024px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .serp-form{grid-template-columns:1fr 1fr}
+  .two-col{grid-template-columns:1fr}
+  .cfg-two{grid-template-columns:1fr}
+  .add-form-row{grid-template-columns:1fr 1fr}
+}
+@media(max-width:640px){
+  .wrap{padding:16px}
+  .hdr{padding:0 16px}
+  .hdr-nav{display:none}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .ch-cards{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <header class="hdr">
-  <div class="h-ico">✈️</div>
-  <div>
-    <div class="h-ttl">Radar Voos</div>
-    <div class="h-sub">Passagens baratas no seu bolso</div>
+  <a class="hdr-brand" href="#">
+    <div class="hdr-ico">✈️</div>
+    <div>
+      <div class="hdr-title">Radar Voos</div>
+      <div class="hdr-sub">Passagens baratas no seu bolso</div>
+    </div>
+  </a>
+  <nav class="hdr-nav">
+    <button class="ntab on" onclick="showPage('dashboard',this)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </button>
+    <button class="ntab" onclick="showPage('config',this)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      Configurações
+    </button>
+    <button class="ntab" onclick="showPage('assinantes',this)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Assinantes
+    </button>
+  </nav>
+  <div class="hdr-live">
+    <span class="live-dot"></span>
+    Monitorando ao vivo
   </div>
-  <div class="live"><div class="dot"></div>Monitorando ao vivo</div>
 </header>
 
-<!-- NAV -->
-<nav class="nav">
-  <div class="ntab on" onclick="goPage('dash',this)">📊 Dashboard</div>
-  <div class="ntab" onclick="goPage('cfg',this)">⚙️ Configurações</div>
-  <div class="ntab" onclick="goPage('subs',this)">👥 Assinantes</div>
-</nav>
+<!-- ══ DASHBOARD ══ -->
+<div class="page on" id="page-dashboard">
+  <div class="wrap">
+    <div class="stats-grid">
+      <div class="sc">
+        <div class="sc-ico blue">🎯</div>
+        <div>
+          <div class="sc-lbl">Rotas Monitoradas</div>
+          <div class="sc-val" id="st-rotas"><span class="spin"></span></div>
+          <div class="sc-sub">Ativas no radar</div>
+        </div>
+      </div>
+      <div class="sc">
+        <div class="sc-ico teal">🔔</div>
+        <div>
+          <div class="sc-lbl">Alertas Enviados</div>
+          <div class="sc-val" id="st-alertas"><span class="spin"></span></div>
+          <div class="sc-sub">Total acumulado</div>
+        </div>
+      </div>
+      <div class="sc">
+        <div class="sc-ico green">%</div>
+        <div>
+          <div class="sc-lbl">Maior Desconto</div>
+          <div class="sc-val" id="st-desc" style="color:var(--green)">—</div>
+          <div class="sc-sub" id="st-desc-sub">—</div>
+        </div>
+      </div>
+      <div class="sc">
+        <div class="sc-ico amber">🕐</div>
+        <div>
+          <div class="sc-lbl">Última Atualização</div>
+          <div class="sc-val" id="st-hora">—</div>
+          <div class="sc-sub" id="st-intervalo">Rodado a cada —h</div>
+        </div>
+      </div>
+    </div>
 
-<!-- ═══════════════════ DASHBOARD PAGE ═══════════════════ -->
-<div class="page on" id="p-dash">
-<div class="wrap">
+    <div class="serp-card">
+      <div class="serp-top">
+        <div class="serp-ico">⚡</div>
+        <div class="serp-info">
+          <div class="serp-title">
+            SERPAPI — BUSCA REAL DE VOOS
+            <span class="badge-connected">Conectado</span>
+          </div>
+          <div class="serp-desc">Conectado ao Google Flights via SerpAPI</div>
+        </div>
+        <button class="btn-outline" onclick="verificarRotas()">🎯 Verificar todas as rotas</button>
+      </div>
+      <div class="serp-form">
+        <div class="sf-field">
+          <div class="sf-lbl">Origem</div>
+          <div class="inp-wrap">
+            <span class="inp-ico">📍</span>
+            <input class="inp" id="s-origem" placeholder="São Paulo (GRU)" list="airports-list">
+          </div>
+        </div>
+        <div class="sf-field">
+          <div class="sf-lbl">Destino</div>
+          <div class="inp-wrap">
+            <span class="inp-ico">📍</span>
+            <input class="inp" id="s-destino" placeholder="Lisboa (LIS)" list="airports-list">
+          </div>
+        </div>
+        <div class="sf-field">
+          <div class="sf-lbl">Data</div>
+          <input class="inp-plain" id="s-data" type="date">
+        </div>
+        <button class="btn-purple" onclick="buscarPreco()">🔍 Buscar preço</button>
+      </div>
+    </div>
 
-<div class="sg">
-  <div class="sc"><div class="sico b">🗺️</div><div><div class="slbl">Rotas Monitoradas</div><div class="sval" id="sv-rotas">—</div><div class="ssub">Ativas no radar</div></div></div>
-  <div class="sc"><div class="sico p">🔔</div><div><div class="slbl">Alertas Enviados</div><div class="sval" id="sv-alertas">—</div><div class="ssub" id="sv-asub">Total acumulado</div></div></div>
-  <div class="sc"><div class="sico g">%</div><div><div class="slbl">Maior Desconto</div><div class="sval" id="sv-desc">—</div><div class="ssub" id="sv-dsub">—</div></div></div>
-  <div class="sc"><div class="sico a">🕐</div><div><div class="slbl">Última Atualização</div><div class="sval" id="sv-hora">—</div><div class="ssub">Rodado a cada 4h</div></div></div>
+    <div class="two-col">
+      <div class="chart-card">
+        <div class="card-hdr">
+          <div class="card-ttl">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            HISTÓRICO DE PREÇOS
+          </div>
+          <select class="rsel" id="rota-sel" onchange="updateChart()"></select>
+        </div>
+        <div style="position:relative;height:210px"><canvas id="price-chart"></canvas></div>
+      </div>
+      <div class="alerts-card">
+        <div class="card-hdr">
+          <div class="card-ttl">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            ALERTAS RECENTES
+          </div>
+        </div>
+        <div class="alert-list" id="alert-list">
+          <div class="empty"><span class="spin"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-card-hdr">
+        <div class="card-ttl">🗺️ ROTAS MONITORADAS</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Rota</th>
+            <th>Preço Atual</th>
+            <th>Média 30D</th>
+            <th>Desconto</th>
+            <th>Companhia</th>
+            <th>Verificação</th>
+          </tr>
+        </thead>
+        <tbody id="routes-tbody">
+          <tr><td colspan="6" class="empty"><span class="spin"></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
-<div class="srp">
-  <div class="srp-top">
-    <div>
-      <div style="display:flex;align-items:center;gap:4px">⚡ <span class="srp-ttl">SerpAPI — busca real de voos</span><span class="cbadge">● Conectado</span></div>
-      <div class="srp-sub">Conectado ao Google Flights via SerpAPI. Faça uma busca ou rode a verificação de todas as rotas ativas.</div>
-    </div>
-    <button class="btn-g" onclick="verifyAll()">🔍 Verificar todas as rotas</button>
-  </div>
-  <div class="srp-row">
-    <div class="sf ac-wrap"><div class="sflbl">Origem</div><input class="inp" id="i-orig" placeholder="POA, GRU, Porto Alegre..." autocomplete="off" oninput="acFilter('i-orig','drop-io')" onkeydown="acKey(event,'drop-io','i-orig')" onblur="setTimeout(()=>document.getElementById('drop-io').classList.remove('open'),200)"><div class="ac-drop" id="drop-io"></div></div>
-    <div class="sf ac-wrap"><div class="sflbl">Destino</div><input class="inp" id="i-dest" placeholder="LIS, CDG, Lisboa..." autocomplete="off" oninput="acFilter('i-dest','drop-id')" onkeydown="acKey(event,'drop-id','i-dest')" onblur="setTimeout(()=>document.getElementById('drop-id').classList.remove('open'),200)"><div class="ac-drop" id="drop-id"></div></div>
-    <div class="sf" style="flex:1.4"><div class="sflbl">Data</div><input class="inp" id="i-date" type="date"></div>
-    <button class="btn-p" onclick="doSearch()">🔎 Buscar preço</button>
-  </div>
-</div>
-
-<div class="two-col">
-  <div class="card ch-card">
-    <div class="ch-hdr">
-      <div><div class="ch-ttl">📈 Histórico de preços</div><div class="ch-sub" id="ch-sub">Selecione uma rota</div></div>
-      <select class="rsel" id="r-sel" onchange="buildChart()"></select>
-    </div>
-    <div class="ch-area"><canvas id="ch"></canvas></div>
-  </div>
-  <div class="card al-card">
-    <div class="al-hdr"><div class="al-ttl">🔔 Alertas recentes</div><span class="al-cnt" id="al-cnt">—</span></div>
-    <div class="al-list" id="al-list"><div style="text-align:center;padding:24px;color:var(--muted)">carregando...</div></div>
-  </div>
-</div>
-
-<div class="tcrd">
-  <div class="tcrd-hdr"><div class="tcrd-ttl">🗺️ Rotas monitoradas</div><div class="tcrd-sub">Linhas em verde = desconto &gt; 30%</div></div>
-  <table><thead><tr><th>Rota</th><th>Preço Atual</th><th>Média 30d</th><th>Desconto</th><th>Companhia</th><th>Verificação</th></tr></thead>
-  <tbody id="rt-body"><tr><td colspan="6" style="text-align:center;padding:28px;color:var(--muted)">carregando...</td></tr></tbody></table>
-</div>
-
-</div>
-</div><!-- /dash -->
-
-<!-- ═══════════════════ CONFIG PAGE ═══════════════════ -->
-<div class="page" id="p-cfg">
-<div class="wrap">
-
-<!-- CANAIS DE NOTIFICAÇÃO -->
-<div class="cfg-card" style="margin-bottom:16px">
-  <div class="cfg-ttl">🔔 Canais de Notificação</div>
-  <div class="cfg-sub">Selecione os canais pelos quais deseja receber alertas de promoções</div>
-  <div class="ch-cards">
-    <div class="ch-crd tg" id="cc-tg" onclick="toggleCh('tg')">
-      <div class="ch-chk" id="chk-tg"></div>
-      <div class="ch-ico">📱</div>
-      <div class="ch-name">Telegram</div>
-      <div class="ch-desc">Alertas via bot no canal ou grupo do Telegram</div>
-    </div>
-    <div class="ch-crd wa" id="cc-wa" onclick="toggleCh('wa')">
-      <div class="ch-chk" id="chk-wa"></div>
-      <div class="ch-ico">💬</div>
-      <div class="ch-name">WhatsApp</div>
-      <div class="ch-desc">Mensagens via Twilio para número ou grupo</div>
-    </div>
-    <div class="ch-crd em" id="cc-em" onclick="toggleCh('em')">
-      <div class="ch-chk" id="chk-em"></div>
-      <div class="ch-ico">📧</div>
-      <div class="ch-name">Email</div>
-      <div class="ch-desc">Envio via SMTP ou SendGrid</div>
-    </div>
-  </div>
-
-  <!-- TELEGRAM CONFIG -->
-  <div id="cfg-tg" style="display:none">
-    <div style="border-top:1px solid var(--border);padding-top:16px;margin-top:4px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <div style="font-size:12px;font-weight:600;color:#60a5fa">📱 Configuração Telegram</div>
-        <span class="sbadge warn" id="tg-status">⚠ Não testado</span>
-      </div>
-      <div class="cfg-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div class="field">
-          <div class="flbl">Bot Token <span class="env-tag">TELEGRAM_BOT_TOKEN</span></div>
-          <input class="inp" id="tg-token" type="password" placeholder="8751642591:AAHU4V...">
+<!-- ══ CONFIGURAÇÕES ══ -->
+<div class="page" id="page-config">
+  <div class="wrap">
+    <div class="cfg-section">
+      <div class="cfg-hdr">🔔 Canais de Notificação</div>
+      <div class="ch-cards">
+        <div class="ch-card" id="ch-tg" onclick="toggleChannel('tg')">
+          <div class="ch-top">
+            <div class="ch-ico tg">💬</div>
+            <div class="ch-status off" id="ch-tg-status"><span>○</span> Inativo</div>
+          </div>
+          <div class="ch-name">Telegram</div>
+          <div class="ch-desc">Alertas via bot no canal ou grupo do Telegram</div>
         </div>
-        <div class="field">
-          <div class="flbl">Channel / Chat ID <span class="env-tag">TELEGRAM_CHANNEL_ID</span></div>
-          <input class="inp" id="tg-channel" placeholder="-1003930312404">
+        <div class="ch-card" id="ch-wa" onclick="toggleChannel('wa')">
+          <div class="ch-top">
+            <div class="ch-ico wa">💬</div>
+            <div class="ch-status off" id="ch-wa-status"><span>○</span> Inativo</div>
+          </div>
+          <div class="ch-name">WhatsApp</div>
+          <div class="ch-desc">Mensagens via Twilio para número ou grupo</div>
+        </div>
+        <div class="ch-card" id="ch-em" onclick="toggleChannel('em')">
+          <div class="ch-top">
+            <div class="ch-ico em">✉️</div>
+            <div class="ch-status off" id="ch-em-status"><span>○</span> Inativo</div>
+          </div>
+          <div class="ch-name">Email</div>
+          <div class="ch-desc">Envio via SMTP ou SendGrid</div>
         </div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="btn-p" style="font-size:11px;padding:7px 14px" onclick="saveTg()">💾 Salvar</button>
-        <button class="btn-g" style="font-size:11px;padding:7px 14px" onclick="testTg()">📨 Testar conexão</button>
-        <button class="btn-g" style="font-size:11px;padding:7px 14px;border-color:rgba(245,158,11,.4);color:#f59e0b" onclick="testAlerta()">✈️ Simular alerta</button>
-        <div class="test-box" id="tg-result"></div>
+
+      <!-- Telegram config -->
+      <div class="tg-cfg" id="cfg-tg">
+        <div class="tg-cfg-top">
+          <div class="tg-cfg-title">💬 Configuração Telegram</div>
+          <span class="status-badge untested" id="tg-badge">⚠ Não testado</span>
+        </div>
+        <div class="field-grid">
+          <div class="field">
+            <div class="flbl">Bot Token <span class="env-tag">TELEGRAM_BOT_TOKEN</span></div>
+            <input class="inp-plain" id="tg-token" type="password" placeholder="123456:ABC-DEF...">
+          </div>
+          <div class="field">
+            <div class="flbl">Channel / Chat ID <span class="env-tag">TELEGRAM_CHANNEL_ID</span></div>
+            <input class="inp-plain" id="tg-channel" placeholder="@meucanal ou -1001234...">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-purple" onclick="saveTg()">💾 Salvar</button>
+          <button class="btn-outline" onclick="testTg()">📨 Testar conexão</button>
+          <button class="btn-outline" style="border-color:rgba(245,158,11,0.3);color:var(--amber)" onclick="testAlerta()">✈️ Simular alerta</button>
+        </div>
+        <div class="test-result" id="tg-result"></div>
+        <div class="section-note">💡 Crie o bot em @BotFather → copie o token. Para o Channel ID: adicione @userinfobot ao canal e copie o ID numérico.</div>
       </div>
-      <div style="font-size:10px;color:var(--muted);margin-top:10px">
-        💡 Crie o bot em <b style="color:var(--text2)">@BotFather</b> → copie o token. Para o Channel ID: adicione <b style="color:var(--text2)">@userinfobot</b> ao canal e copie o ID numérico.
+
+      <!-- WhatsApp config -->
+      <div class="tg-cfg" id="cfg-wa">
+        <div class="tg-cfg-top">
+          <div class="tg-cfg-title">💬 Configuração WhatsApp (Twilio)</div>
+          <span class="status-badge untested" id="wa-badge">⚠ Não testado</span>
+        </div>
+        <div class="field-grid">
+          <div class="field">
+            <div class="flbl">Account SID <span class="env-tag">TWILIO_ACCOUNT_SID</span></div>
+            <input class="inp-plain" id="wa-sid" type="password" placeholder="ACxxxxxxxxxxxxxxxx">
+          </div>
+          <div class="field">
+            <div class="flbl">Auth Token <span class="env-tag">TWILIO_AUTH_TOKEN</span></div>
+            <input class="inp-plain" id="wa-token" type="password" placeholder="seu_auth_token">
+          </div>
+          <div class="field">
+            <div class="flbl">Número Twilio From <span class="env-tag">TWILIO_FROM</span></div>
+            <input class="inp-plain" id="wa-from" placeholder="+14155238886">
+          </div>
+          <div class="field">
+            <div class="flbl">Número Destino To <span class="env-tag">TWILIO_TO</span></div>
+            <input class="inp-plain" id="wa-to" placeholder="+5511999998888">
+          </div>
+        </div>
+        <div class="section-note">💡 Configure o Twilio Sandbox em console.twilio.com → WhatsApp Sandbox.</div>
+      </div>
+
+      <!-- Email config -->
+      <div class="tg-cfg" id="cfg-em">
+        <div class="tg-cfg-top">
+          <div class="tg-cfg-title">✉️ Configuração Email</div>
+        </div>
+        <div class="field-grid">
+          <div class="field">
+            <div class="flbl">Email remetente <span class="env-tag">EMAIL_FROM</span></div>
+            <input class="inp-plain" id="em-from" placeholder="seu@email.com">
+          </div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- WHATSAPP CONFIG -->
-  <div id="cfg-wa" style="display:none">
-    <div style="border-top:1px solid var(--border);padding-top:16px;margin-top:4px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <div style="font-size:12px;font-weight:600;color:#34d399">💬 Configuração WhatsApp (Twilio)</div>
-        <span class="sbadge warn" id="wa-status">⚠ Não testado</span>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div class="field">
-          <div class="flbl">Account SID <span class="env-tag">TWILIO_ACCOUNT_SID</span></div>
-          <input class="inp" id="wa-sid" type="password" placeholder="ACxxxxxxxxxxxxxxxx">
+    <div class="cfg-two">
+      <div class="cfg-box">
+        <div class="cfg-hdr">🗺️ Rotas Monitoradas</div>
+        <div class="route-form">
+          <input class="inp-plain" id="r-origem" placeholder="Origem" oninput="this.value=this.value.toUpperCase()">
+          <span class="arr-ico">→</span>
+          <input class="inp-plain" id="r-destino" placeholder="Destino" oninput="this.value=this.value.toUpperCase()">
+          <button class="btn-purple" onclick="addRota()">+ Adicionar</button>
         </div>
-        <div class="field">
-          <div class="flbl">Auth Token <span class="env-tag">TWILIO_AUTH_TOKEN</span></div>
-          <input class="inp" id="wa-token" type="password" placeholder="seu_auth_token">
-        </div>
-        <div class="field">
-          <div class="flbl">Número Twilio (From) <span class="env-tag">TWILIO_FROM</span></div>
-          <input class="inp" id="wa-from" placeholder="+14155238886">
-        </div>
-        <div class="field">
-          <div class="flbl">Número Destino (To) <span class="env-tag">TWILIO_TO</span></div>
-          <input class="inp" id="wa-to" placeholder="+5511999998888">
+        <div class="route-list" id="route-list">
+          <div class="empty"><span class="spin"></span></div>
         </div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="btn-p" style="font-size:11px;padding:7px 14px" onclick="saveWa()">💾 Salvar</button>
-        <button class="btn-g" style="font-size:11px;padding:7px 14px" onclick="testWa()">📨 Testar envio</button>
-        <div class="test-box" id="wa-result"></div>
-      </div>
-      <div style="font-size:10px;color:var(--muted);margin-top:10px">
-        💡 Acesse <b style="color:var(--text2)">console.twilio.com</b> → WhatsApp Sandbox. Configure o Sandbox e use o número de sandbox fornecido.
-      </div>
-    </div>
-  </div>
 
-  <!-- EMAIL CONFIG -->
-  <div id="cfg-em" style="display:none">
-    <div style="border-top:1px solid var(--border);padding-top:16px;margin-top:4px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <div style="font-size:12px;font-weight:600;color:#fbbf24">📧 Configuração Email</div>
-        <span class="sbadge warn" id="em-status">⚠ Não testado</span>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div class="field">
-          <div class="flbl">Provedor</div>
-          <select class="inp" id="em-prov" onchange="toggleEmailProv()">
-            <option value="sendgrid">SendGrid (recomendado)</option>
-            <option value="smtp">SMTP customizado</option>
+      <div class="cfg-box">
+        <div class="cfg-hdr">📊 Parâmetros de Busca</div>
+
+        <div class="param-group">
+          <div class="param-lbl">Janela de datas (dias)</div>
+          <div class="days-chips" id="days-chips">
+            <div class="day-chip" data-v="7" onclick="toggleDay(this)">7</div>
+            <div class="day-chip" data-v="14" onclick="toggleDay(this)">14</div>
+            <div class="day-chip" data-v="30" onclick="toggleDay(this)">30</div>
+            <div class="day-chip" data-v="60" onclick="toggleDay(this)">60</div>
+            <div class="day-chip" data-v="90" onclick="toggleDay(this)">90</div>
+            <div class="day-chip" data-v="120" onclick="toggleDay(this)">120</div>
+            <div class="day-chip" data-v="180" onclick="toggleDay(this)">180</div>
+          </div>
+        </div>
+
+        <div class="param-group">
+          <div class="param-lbl">
+            Desconto mínimo para alerta
+            <span class="param-val" id="thr-val">30%</span>
+          </div>
+          <input class="slider" type="range" id="thr-range" min="5" max="60" step="5" value="30"
+            oninput="document.getElementById('thr-val').textContent=this.value+'%'">
+        </div>
+
+        <div class="param-group">
+          <div class="param-lbl">Intervalo entre verificações</div>
+          <select class="select" id="int-sel">
+            <option value="1">1h</option>
+            <option value="2">2h</option>
+            <option value="4" selected>4h</option>
+            <option value="6">6h</option>
+            <option value="12">12h</option>
+            <option value="24">24h</option>
           </select>
         </div>
-        <div class="field" id="sg-field">
-          <div class="flbl">SendGrid API Key <span class="env-tag">SENDGRID_API_KEY</span></div>
-          <input class="inp" id="em-sgkey" type="password" placeholder="SG.xxxxxxxxxxxxx">
+
+        <div class="toggle-list">
+          <div class="toggle-row">
+            <span class="toggle-name">Alertar para múltiplas companhias</span>
+            <label class="toggle"><input type="checkbox" id="tog-multi" checked><div class="toggle-track"></div></label>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-name">Incluir voos com escala</span>
+            <label class="toggle"><input type="checkbox" id="tog-escala"><div class="toggle-track"></div></label>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-name">Priorizar voos diretos</span>
+            <label class="toggle"><input type="checkbox" id="tog-direto" checked><div class="toggle-track"></div></label>
+          </div>
         </div>
-        <div class="field" id="smtp-host-f" style="display:none">
-          <div class="flbl">Host SMTP <span class="env-tag">SMTP_HOST</span></div>
-          <input class="inp" id="em-host" placeholder="smtp.gmail.com">
-        </div>
-        <div class="field" id="smtp-port-f" style="display:none">
-          <div class="flbl">Porta SMTP <span class="env-tag">SMTP_PORT</span></div>
-          <input class="inp" id="em-port" placeholder="587">
-        </div>
-        <div class="field" id="smtp-user-f" style="display:none">
-          <div class="flbl">Usuário SMTP <span class="env-tag">SMTP_USER</span></div>
-          <input class="inp" id="em-user" placeholder="seu@email.com">
-        </div>
-        <div class="field" id="smtp-pass-f" style="display:none">
-          <div class="flbl">Senha SMTP <span class="env-tag">SMTP_PASS</span></div>
-          <input class="inp" id="em-pass" type="password" placeholder="senha_de_app">
+
+        <button class="btn-save-full" onclick="saveSettings()">💾 Salvar configurações</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ASSINANTES ══ -->
+<div class="page" id="page-assinantes">
+  <div class="wrap">
+    <div class="add-form-card">
+      <div class="cfg-hdr">+ Adicionar Assinante</div>
+      <div class="add-form-row">
+        <div class="field">
+          <input class="inp-plain" id="a-nome" placeholder="Nome / Identificação">
         </div>
         <div class="field">
-          <div class="flbl">Email Remetente <span class="env-tag">EMAIL_FROM</span></div>
-          <input class="inp" id="em-from" placeholder="alertas@radarvoos.com">
+          <select class="select" id="a-canal">
+            <option value="telegram">Telegram</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="email">Email</option>
+          </select>
         </div>
         <div class="field">
-          <div class="flbl">Email Destinatário <span class="env-tag">EMAIL_TO</span></div>
-          <input class="inp" id="em-to" placeholder="voce@email.com">
+          <input class="inp-plain" id="a-contato" placeholder="Contato (@user, telefone, email)">
+        </div>
+        <button class="btn-purple" onclick="addAssinante()">+ Adicionar</button>
+      </div>
+    </div>
+
+    <div class="list-card">
+      <div class="list-hdr">
+        <div class="cfg-hdr" style="margin-bottom:0">Assinantes Cadastrados</div>
+        <span class="list-count" id="a-count"></span>
+        <div class="filter-pills" style="margin-left:auto">
+          <button class="fpill on" onclick="filterA('todos',this)">Todos</button>
+          <button class="fpill" onclick="filterA('ativo',this)">Ativo</button>
+          <button class="fpill" onclick="filterA('pausado',this)">Pausado</button>
+        </div>
+        <div class="search-wrap">
+          <span class="search-ico">🔍</span>
+          <input class="search-inp" id="a-search" placeholder="Buscar nome..." oninput="renderAssinantes()">
         </div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="btn-p" style="font-size:11px;padding:7px 14px" onclick="saveEmail()">💾 Salvar</button>
-        <button class="btn-g" style="font-size:11px;padding:7px 14px" onclick="testEmail()">📨 Testar envio</button>
-        <div class="test-box" id="em-result"></div>
-      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Assinante</th>
+            <th>Canal</th>
+            <th>Alertas</th>
+            <th>Cadastrado em</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="a-tbody">
+          <tr><td colspan="6" class="empty"><span class="spin"></span></td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
-
-<!-- ROTAS + PARÂMETROS -->
-<div class="cfg-grid">
-
-  <!-- ROTAS MONITORADAS -->
-  <div class="cfg-card">
-    <div class="cfg-ttl">🗺️ Rotas Monitoradas</div>
-    <div class="cfg-sub">Adicione pares de origem/destino para monitorar preços automaticamente</div>
-    <div style="display:flex;gap:8px;align-items:flex-end">
-      <div class="sf ac-wrap" style="flex:1"><div class="sflbl">Origem</div><input class="inp" id="r-orig" placeholder="POA, GRU, Porto Alegre..." autocomplete="off" oninput="acFilter('r-orig','drop-ro')" onkeydown="acKey(event,'drop-ro','r-orig')" onblur="setTimeout(()=>document.getElementById('drop-ro').classList.remove('open'),200)"><div class="ac-drop" id="drop-ro"></div></div>
-      <div style="color:var(--muted);padding-bottom:10px;font-size:16px">→</div>
-      <div class="sf ac-wrap" style="flex:1"><div class="sflbl">Destino</div><input class="inp" id="r-dest" placeholder="GRU, LIS, São Paulo..." autocomplete="off" oninput="acFilter('r-dest','drop-rd')" onkeydown="acKey(event,'drop-rd','r-dest')" onblur="setTimeout(()=>document.getElementById('drop-rd').classList.remove('open'),200)"><div class="ac-drop" id="drop-rd"></div></div>
-      <button class="btn-p" style="font-size:11px;padding:8px 14px" onclick="addRota()">+ Adicionar</button>
-    </div>
-    <div class="rota-list" id="cfg-rotas">
-      <div style="text-align:center;padding:20px;color:var(--muted)">carregando...</div>
-    </div>
-  </div>
-
-  <!-- PARÂMETROS DE BUSCA -->
-  <div class="cfg-card">
-    <div class="cfg-ttl">🎛️ Parâmetros de Busca</div>
-    <div class="cfg-sub">Defina como o sistema deve monitorar e quando alertar</div>
-
-    <div class="field">
-      <div class="flbl" style="margin-bottom:10px">Dias de antecedência monitorados</div>
-      <div class="dias-grid" id="dias-check">
-        <label class="dchk"><input type="checkbox" value="7"><span>7 dias</span></label>
-        <label class="dchk"><input type="checkbox" value="14"><span>14 dias</span></label>
-        <label class="dchk"><input type="checkbox" value="30"><span>30 dias</span></label>
-        <label class="dchk"><input type="checkbox" value="60"><span>60 dias</span></label>
-        <label class="dchk"><input type="checkbox" value="90"><span>90 dias</span></label>
-        <label class="dchk"><input type="checkbox" value="120"><span>120 dias</span></label>
-        <label class="dchk"><input type="checkbox" value="180"><span>180 dias</span></label>
-      </div>
-    </div>
-
-    <div class="field">
-      <div class="flbl">Desconto mínimo para alerta</div>
-      <div class="range-row">
-        <input type="range" id="thr-range" min="5" max="60" step="5" oninput="document.getElementById('thr-val').textContent=this.value+'%'">
-        <span class="range-val" id="thr-val">30%</span>
-      </div>
-      <div style="font-size:10px;color:var(--muted);margin-top:4px">Ex: 30% = alertar quando preço cair 30% abaixo da média</div>
-    </div>
-
-    <div class="field">
-      <div class="flbl">Intervalo entre verificações</div>
-      <select class="inp" id="int-sel">
-        <option value="1">A cada 1 hora</option>
-        <option value="2">A cada 2 horas</option>
-        <option value="4">A cada 4 horas</option>
-        <option value="6">A cada 6 horas</option>
-        <option value="12">A cada 12 horas</option>
-        <option value="24">Uma vez por dia</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <div class="flbl" style="margin-bottom:10px">Opções de monitoramento</div>
-      <div class="trow"><div><div class="trow-lbl">Alertar para múltiplas companhias</div><div class="trow-sub">Enviar alerta mesmo se a rota já teve alerta hoje</div></div><label class="toggle"><input type="checkbox" id="opt-multi" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
-      <div class="trow"><div><div class="trow-lbl">Incluir voos com escala</div><div class="trow-sub">Monitorar voos com 1 ou mais escalas</div></div><label class="toggle"><input type="checkbox" id="opt-escala" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
-      <div class="trow"><div><div class="trow-lbl">Priorizar voos diretos</div><div class="trow-sub">Aplicar limiar de desconto menor para voos diretos</div></div><label class="toggle"><input type="checkbox" id="opt-direto"><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
-    </div>
-
-    <button class="btn-p" style="width:100%;padding:9px" onclick="saveParams()">💾 Salvar configurações</button>
-    <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:8px">Alterações entram em vigor no próximo ciclo do scheduler</div>
-  </div>
-</div>
-
-<!-- VARIÁVEIS DE AMBIENTE -->
-<div class="cfg-card full" style="margin-bottom:16px">
-  <div class="cfg-ttl">🔑 Variáveis de Ambiente (Railway)</div>
-  <div class="cfg-sub">Configure estas variáveis no painel do Railway → Service → Variables para que as notificações funcionem no servidor</div>
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px">
-      <div style="font-size:11px;font-weight:600;color:#60a5fa;margin-bottom:8px">📱 Telegram</div>
-      <div style="font-size:10px;color:var(--muted);line-height:2">
-        <code style="color:var(--violet)">TELEGRAM_BOT_TOKEN</code><br>
-        <code style="color:var(--violet)">TELEGRAM_CHANNEL_ID</code>
-      </div>
-    </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px">
-      <div style="font-size:11px;font-weight:600;color:#34d399;margin-bottom:8px">💬 WhatsApp</div>
-      <div style="font-size:10px;color:var(--muted);line-height:2">
-        <code style="color:var(--violet)">TWILIO_ACCOUNT_SID</code><br>
-        <code style="color:var(--violet)">TWILIO_AUTH_TOKEN</code><br>
-        <code style="color:var(--violet)">TWILIO_FROM</code> · <code style="color:var(--violet)">TWILIO_TO</code>
-      </div>
-    </div>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px">
-      <div style="font-size:11px;font-weight:600;color:#fbbf24;margin-bottom:8px">📧 Email</div>
-      <div style="font-size:10px;color:var(--muted);line-height:2">
-        <code style="color:var(--violet)">SENDGRID_API_KEY</code><br>
-        <code style="color:var(--violet)">EMAIL_FROM</code> · <code style="color:var(--violet)">EMAIL_TO</code><br>
-        <code style="color:var(--violet)">SERPAPI_KEY</code>
-      </div>
-    </div>
-  </div>
-</div>
-
-</div>
-</div><!-- /cfg -->
-
-<!-- ═══════════════════ SUBSCRIBERS PAGE ═══════════════════ -->
-<div class="page" id="p-subs">
-<div class="wrap">
-
-<!-- ADD SUBSCRIBER -->
-<div class="cfg-card" style="margin-bottom:16px">
-  <div class="cfg-ttl">➕ Adicionar Assinante</div>
-  <div class="cfg-sub">Cadastre pessoas ou canais para receber alertas de promoções automaticamente</div>
-  <div class="add-sub-grid">
-    <div class="field"><div class="flbl">Nome / Identificação</div><input class="inp" id="a-nome" placeholder="Ex: Canal de Promoções"></div>
-    <div class="field"><div class="flbl">Canal de envio</div>
-      <select class="inp" id="a-canal" onchange="updateHint()">
-        <option value="telegram">📱 Telegram</option>
-        <option value="whatsapp">💬 WhatsApp</option>
-        <option value="email">📧 Email</option>
-      </select>
-    </div>
-    <div class="field" style="grid-column:1/-1"><div class="flbl">Contato <span id="a-hint" style="color:var(--muted);font-weight:400">Chat ID (-1001234...) ou @canal</span></div>
-    <input class="inp" id="a-contato" placeholder="@canal_telegram ou -1001234567890"></div>
-  </div>
-  <button class="btn-p" style="width:100%;padding:9px" onclick="addSub()">+ Adicionar Assinante</button>
-</div>
-
-<!-- SUBSCRIBERS TABLE -->
-<div class="tcrd">
-  <div class="tcrd-hdr">
-    <div class="tcrd-ttl">👥 Assinantes Cadastrados</div>
-    <div style="display:flex;align-items:center;gap:10px">
-      <span style="font-size:11px;color:var(--muted)"><b id="m-ativos" style="color:var(--text2)">0</b> ativos · <b id="m-total" style="color:var(--text2)">0</b> total</span>
-    </div>
-  </div>
-  <div class="sub-bar">
-    <input class="inp" style="max-width:280px" placeholder="Buscar por nome ou contato..." id="sub-q" oninput="filterSubs()">
-    <div class="ftabs">
-      <button class="ftab on" onclick="setF('todos',this)">Todos</button>
-      <button class="ftab" onclick="setF('ativo',this)">Ativo</button>
-      <button class="ftab" onclick="setF('pausado',this)">Pausado</button>
-    </div>
-  </div>
-  <table><thead><tr><th>Assinante</th><th>Canal</th><th>Alertas</th><th>Cadastrado em</th><th>Status</th><th>Ações</th></tr></thead>
-  <tbody id="sub-body"><tr><td colspan="6" style="text-align:center;padding:28px;color:var(--muted)">carregando...</td></tr></tbody></table>
-</div>
-
-</div>
-</div><!-- /subs -->
 
 <div id="toast"></div>
+<datalist id="airports-list"></datalist>
 
 <script>
-const BRL=v=>'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
-const ago=s=>{if(!s)return'—';const m=(Date.now()-new Date(s))/60000;if(m<1)return'agora';if(m<60)return`há ${Math.floor(m)} min`;if(m<1440)return`há ${Math.floor(m/60)}h`;return`há ${Math.floor(m/1440)}d`;};
-let precos=[],alertas=[],subs=[],chart=null,filt='todos',q='',cfgData={};
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let precosData = [];
+let alertasData = [];
+let assinantesData = [];
+let cfgData = {};
+let filterStatus = 'todos';
+let priceChart = null;
 
-function showToast(msg,ok=true){const t=document.getElementById('toast');t.textContent=msg;t.className='show '+(ok?'ok':'err');setTimeout(()=>t.className='',3200);}
-
-/* ── PAGE NAV ── */
-function goPage(name,el){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
-  document.getElementById('p-'+name).classList.add('on');
-  el.classList.add('on');
-  if(name==='cfg') loadCfgPage();
-  if(name==='subs') loadSubs();
+const fmt = v => 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits:0,maximumFractionDigits:0});
+const fmtDate = s => s ? new Date(s).toLocaleDateString('pt-BR') : '—';
+function timeAgo(s){
+  if(!s) return '—';
+  const d = Math.floor((Date.now()-new Date(s))/1000);
+  if(d<60) return 'há '+d+'s';
+  if(d<3600) return 'há '+Math.floor(d/60)+'min';
+  if(d<86400) return 'há '+Math.floor(d/3600)+'h';
+  return 'há '+Math.floor(d/86400)+'d';
 }
 
-/* ── LOAD ALL (Dashboard) ── */
-async function loadAll(){
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function showPage(name, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('page-'+name).classList.add('on');
+  if(el) el.classList.add('on');
+  if(name==='dashboard') loadDashboard();
+  if(name==='config') loadConfig();
+  if(name==='assinantes') loadAssinantes();
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function toast(msg,ok=true){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='show '+(ok?'ok':'err');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.className='',3000);
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+async function loadDashboard(){
   try{
-    const[st,pr,al]=await Promise.all([
+    const [stats,precos,alertas,cfg]=await Promise.all([
       fetch('/api/stats').then(r=>r.json()),
       fetch('/api/precos').then(r=>r.json()),
       fetch('/api/alertas').then(r=>r.json()),
+      fetch('/api/config').then(r=>r.json()),
     ]);
-    precos=pr; alertas=al;
-    document.getElementById('sv-rotas').textContent=st.rotas;
-    document.getElementById('sv-alertas').textContent=st.alertas;
-    document.getElementById('sv-hora').textContent=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-    if(al.length){const b=al.reduce((a,c)=>Math.abs(a.desconto_pct||0)>Math.abs(c.desconto_pct||0)?a:c);const p=Math.round(Math.abs(b.desconto_pct||0)*100);document.getElementById('sv-desc').textContent=p+'%';document.getElementById('sv-dsub').textContent=`${b.origem} → ${b.destino} [${b.companhia||''}]`;}
-    renderAlertas(); renderRoutes();
-    const routes=[...new Map(pr.map(p=>[p.origem+'→'+p.destino,{o:p.origem,d:p.destino}])).entries()];
-    const sel=document.getElementById('r-sel');
-    sel.innerHTML=routes.map(([k,v])=>`<option value="${k}">${v.o} → ${v.d}</option>`).join('');
-    if(routes.length) buildChart();
+    precosData=precos; alertasData=alertas; cfgData=cfg;
+
+    document.getElementById('st-rotas').textContent=stats.rotas||0;
+    document.getElementById('st-alertas').textContent=stats.alertas||0;
+
+    if(alertas.length){
+      const best=alertas.reduce((a,b)=>b.desconto_pct>a.desconto_pct?b:a,alertas[0]);
+      document.getElementById('st-desc').textContent='-'+(best.desconto_pct*100).toFixed(0)+'%';
+      document.getElementById('st-desc-sub').textContent=best.origem+' → '+best.destino+' · '+(best.companhia||'—');
+    }
+
+    const now=new Date();
+    document.getElementById('st-hora').textContent=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('st-intervalo').textContent='Rodado a cada '+(cfg.intervalo_horas||4)+'h';
+
+    renderAlerts();
+    renderRoutesTable();
+    buildChartSelect();
+    updateChart();
   }catch(e){console.error(e);}
 }
 
-function renderAlertas(){
-  const el=document.getElementById('al-list');
-  document.getElementById('al-cnt').textContent=`Últimos ${Math.min(alertas.length,10)}`;
-  if(!alertas.length){el.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted)">Nenhum alerta ainda</div>';return;}
-  el.innerHTML=alertas.slice(0,10).map(a=>{
-    const pct=Math.round(Math.abs(a.desconto_pct||0)*100);
-    return `<div class="al-item"><div class="al-info"><div style="display:flex;align-items:center;gap:6px"><span class="al-rt">${a.origem} → ${a.destino}</span><span class="disc">-${pct}%</span></div><div class="al-pr">${BRL(a.preco_alerta)} · ${a.companhia||'—'}</div></div><div class="al-ri"><span class="al-tm">${ago(a.enviado_em)}</span>${a.link_compra?`<a class="offer-btn" href="${a.link_compra}" target="_blank">Ver oferta →</a>`:''}</div></div>`;
+function renderAlerts(){
+  const el=document.getElementById('alert-list');
+  if(!alertasData.length){el.innerHTML='<div class="empty">Nenhum alerta ainda</div>';return;}
+  el.innerHTML=alertasData.slice(0,10).map(a=>{
+    const pct=(a.desconto_pct*100).toFixed(0);
+    return`<div class="al-item">
+      <div>
+        <div class="al-route">${a.origem} → ${a.destino}</div>
+        <div class="al-info">${fmt(a.preco_alerta)} · ${a.companhia||'—'} · ${timeAgo(a.enviado_em)}</div>
+      </div>
+      <div class="al-right">
+        <span class="disc-badge">-${pct}%</span>
+        ${a.link_compra?`<a href="${a.link_compra}" target="_blank" class="offer-link">Ver oferta →</a>`:''}
+      </div>
+    </div>`;
   }).join('');
 }
 
-function renderRoutes(){
-  const tbody=document.getElementById('rt-body');
-  const byRoute={};
-  precos.forEach(p=>{const k=p.origem+'→'+p.destino;if(!byRoute[k]||p.preco<byRoute[k].preco)byRoute[k]=p;});
-  const rows=Object.values(byRoute);
-  if(!rows.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--muted)">Nenhum preço coletado ainda</td></tr>';return;}
-  tbody.innerHTML=rows.map(p=>{
-    const d=p.media?(p.preco-p.media)/p.media:null;
-    const pct=d!==null?Math.round(Math.abs(d)*100):null;
-    const big=d!==null&&d<-0.3;
-    const discH=pct!==null?`<span class="disc${d>=0?' up':''}">${d<0?'-':'+'}${pct}%</span>`:'—';
-    return `<tr class="${big?'hl':''}"><td><span class="iata">${p.origem}</span><span class="arr">→</span><span class="iata">${p.destino}</span></td><td style="font-weight:700;font-size:13px;color:${d!==null&&d<-0.1?'var(--green)':'var(--text)'}">${BRL(p.preco)}</td><td style="color:var(--text2)">${p.media?BRL(p.media):'—'}</td><td>${discH}</td><td style="color:var(--text2)">${p.companhia||'—'}</td><td style="color:var(--muted);font-size:11px">${ago(p.capturado_em)}</td></tr>`;
+function renderRoutesTable(){
+  const tbody=document.getElementById('routes-tbody');
+  if(!precosData.length){tbody.innerHTML='<tr><td colspan="6" class="empty">Nenhum dado coletado ainda</td></tr>';return;}
+  const grouped={};
+  precosData.forEach(p=>{
+    const k=p.origem+'→'+p.destino;
+    if(!grouped[k]||new Date(p.capturado_em)>new Date(grouped[k].capturado_em)) grouped[k]=p;
+  });
+  tbody.innerHTML=Object.values(grouped).map(p=>{
+    const diff=p.media?((p.preco-p.media)/p.media*100):null;
+    const isDeal=diff!==null&&diff<=-10;
+    const pctStr=diff!==null?(diff<0?'-':'+')+(Math.abs(diff)).toFixed(0)+'%':'—';
+    const color=diff!==null&&diff<=-10?'var(--green)':diff!==null&&diff>=10?'var(--red)':'var(--text2)';
+    return`<tr>
+      <td><div class="td-route">${p.origem} <span class="arr">→</span> ${p.destino}</div></td>
+      <td class="td-price ${isDeal?'deal':'normal'}">${fmt(p.preco)}</td>
+      <td class="td-avg">${p.media?fmt(p.media):'—'}</td>
+      <td><span class="disc-badge" style="color:${color};background:${isDeal?'rgba(16,185,129,0.12)':'rgba(239,68,68,0.12)'};border-color:${isDeal?'rgba(16,185,129,0.25)':'rgba(239,68,68,0.25)'}">${pctStr}</span></td>
+      <td class="td-co">${p.companhia||'—'}</td>
+      <td class="td-time">${timeAgo(p.capturado_em)}</td>
+    </tr>`;
   }).join('');
 }
 
-function buildChart(){
-  const key=document.getElementById('r-sel').value;if(!key||!precos.length)return;
-  const[orig,dest]=key.split('→');
-  const pts=precos.filter(p=>p.origem===orig&&p.destino===dest).sort((a,b)=>(a.data_voo||'').localeCompare(b.data_voo||''));
-  const labels=pts.map(p=>p.data_voo?p.data_voo.slice(5):'—');
-  const prices=pts.map(p=>p.preco);
-  const avg=pts[0]?.media;
-  document.getElementById('ch-sub').textContent=`${orig} → ${dest} — preços por data de partida`;
-  if(chart)chart.destroy();
-  const ctx=document.getElementById('ch').getContext('2d');
-  const g=ctx.createLinearGradient(0,0,0,200);
-  g.addColorStop(0,'rgba(99,102,241,.4)');g.addColorStop(1,'rgba(99,102,241,0)');
-  chart=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'Preço',data:prices,borderColor:'#6366f1',backgroundColor:g,borderWidth:2,tension:.35,fill:true,pointBackgroundColor:'#6366f1',pointRadius:3,pointHoverRadius:5},...(avg?[{label:'Média',data:prices.map(()=>avg),borderColor:'rgba(245,158,11,.5)',borderWidth:1.5,borderDash:[4,4],fill:false,pointRadius:0}]:[])]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f1330',borderColor:'rgba(255,255,255,.1)',borderWidth:1,titleColor:'#a8b4d0',bodyColor:'#f0f4ff',callbacks:{label:c=>' '+BRL(c.raw)}}},scales:{x:{ticks:{color:'#5a6580',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#5a6580',font:{size:10},callback:v=>'R$'+Number(v/1000).toFixed(1)+'k'},grid:{color:'rgba(255,255,255,.04)'}}}}});
+function buildChartSelect(){
+  const sel=document.getElementById('rota-sel');
+  const rotas=[...new Set(precosData.map(p=>p.origem+'→'+p.destino))];
+  sel.innerHTML=rotas.map(r=>`<option value="${r}">${r.replace('→',' → ')}</option>`).join('');
 }
 
-/* ── AUTOCOMPLETE ── */
-let _apts={},_grps={};
-
-async function loadAirports(){
-  try{
-    [_apts,_grps]=await Promise.all([
-      fetch('/api/config/airports').then(r=>r.json()),
-      fetch('/api/config/groups').then(r=>r.json())
-    ]);
-  }catch(e){console.warn('airports not loaded',e);}
-}
-
-function acSuggest(q){
-  if(!q||q.length<2) return [];
-  const s=q.toLowerCase().trim();
-  const res=[],seen=new Set();
-
-  // 1. Grupos de cidade (ex: "rio" → RIO com GIG+SDU)
-  for(const[code,info]of Object.entries(_grps)){
-    if(seen.has(code)) continue;
-    const match=code.toLowerCase().startsWith(s)||info.nome.toLowerCase().includes(s);
-    if(match){
-      seen.add(code);
-      const apts=info.aeroportos||[];
-      if(apts.length>1){
-        // Opção TODOS + aeroportos individuais
-        res.push({code,label:info.nome,sub:apts.join(' · '),type:'city',apts});
-        apts.forEach(a=>{
-          if(!seen.has(a)){seen.add(a);res.push({code:a,label:_apts[a]||a,sub:'',type:'apt'});}
-        });
-      } else if(apts.length===1){
-        const a=apts[0];seen.add(a);
-        res.push({code:a,label:_apts[a]||info.nome,sub:'',type:'apt'});
+function updateChart(){
+  const sel=document.getElementById('rota-sel').value;
+  if(!sel) return;
+  const [o,d]=sel.split('→');
+  const items=precosData.filter(p=>p.origem===o&&p.destino===d)
+    .sort((a,b)=>new Date(a.capturado_em)-new Date(b.capturado_em));
+  const labels=items.map(p=>fmtDate(p.capturado_em));
+  const data=items.map(p=>p.preco);
+  const ctx=document.getElementById('price-chart').getContext('2d');
+  if(priceChart) priceChart.destroy();
+  priceChart=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{label:'Preço',data,borderColor:'#7c3aed',borderWidth:2,pointBackgroundColor:'#7c3aed',pointRadius:4,pointHoverRadius:6,fill:true,backgroundColor:'rgba(124,58,237,0.06)',tension:.3}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a1f3a',borderColor:'rgba(124,58,237,0.3)',borderWidth:1,titleColor:'#a0aec0',bodyColor:'#f0f4ff',callbacks:{label:ctx=>'R$ '+ctx.raw.toLocaleString('pt-BR')}}},
+      scales:{
+        x:{ticks:{color:'#4a5568',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{ticks:{color:'#4a5568',font:{size:10},callback:v=>'R$'+v.toLocaleString('pt-BR')},grid:{color:'rgba(255,255,255,0.04)'}}
       }
     }
-  }
-
-  // 2. Aeroportos individuais por código ou nome
-  for(const[code,name]of Object.entries(_apts)){
-    if(seen.has(code)) continue;
-    if(code.toLowerCase().startsWith(s)||name.toLowerCase().includes(s)){
-      seen.add(code);
-      res.push({code,label:name,sub:'',type:'apt'});
-    }
-  }
-
-  return res.slice(0,10);
+  });
 }
 
-function acFilter(inputId,dropId){
-  const inp=document.getElementById(inputId);
-  const drop=document.getElementById(dropId);
-  const q=inp.value;
-  const suggestions=acSuggest(q);
-  if(!suggestions.length){
-    drop.innerHTML=q.length>=2?'<div class="ac-empty">Nenhum aeroporto encontrado</div>':'';
-    drop.classList.toggle('open',q.length>=2);
-    return;
-  }
-  drop.innerHTML=suggestions.map((s,i)=>`
-    <div class="ac-item" data-code="${s.code}" data-input="${inputId}" data-drop="${dropId}" onclick="acSelect('${inputId}','${dropId}','${s.code}')">
-      <span class="ac-code">${s.code}</span>
-      <div class="ac-info">
-        <div class="ac-name">${s.label}</div>
-        ${s.sub?`<div class="ac-apts">${s.sub}</div>`:''}
-      </div>
-      ${s.type==='city'?'<span class="ac-all">✈ TODOS</span>':''}
-    </div>`).join('');
-  drop.classList.add('open');
+async function buscarPreco(){
+  toast('Verificação iniciada em background...');
+  await fetch('/api/verificar',{method:'POST'});
 }
 
-function acSelect(inputId,dropId,code){
-  document.getElementById(inputId).value=code;
-  document.getElementById(dropId).classList.remove('open');
+async function verificarRotas(){
+  toast('Verificando todas as rotas...');
+  await fetch('/api/verificar',{method:'POST'});
 }
 
-function acKey(e,dropId,inputId){
-  const drop=document.getElementById(dropId);
-  if(!drop.classList.contains('open')) return;
-  const items=[...drop.querySelectorAll('.ac-item')];
-  const cur=items.findIndex(i=>i.classList.contains('hl'));
-  if(e.key==='ArrowDown'){
-    e.preventDefault();
-    const n=cur<items.length-1?cur+1:0;
-    items.forEach(i=>i.classList.remove('hl'));
-    if(items[n])items[n].classList.add('hl');
-  } else if(e.key==='ArrowUp'){
-    e.preventDefault();
-    const n=cur>0?cur-1:items.length-1;
-    items.forEach(i=>i.classList.remove('hl'));
-    if(items[n])items[n].classList.add('hl');
-  } else if(e.key==='Enter'){
-    // Só seleciona se o usuário explicitamente navegou com setas e destacou um item
-    const hl=drop.querySelector('.ac-item.hl');
-    if(hl){e.preventDefault();acSelect(inputId,dropId,hl.dataset.code);}
-    // Sem item destacado: Enter fecha o dropdown mas não interfere com o texto digitado
-    else{drop.classList.remove('open');}
-  } else if(e.key==='Escape'){
-    drop.classList.remove('open');
-  }
-}
-
-// Fechar dropdowns ao clicar fora
-document.addEventListener('click',e=>{
-  if(!e.target.closest('.ac-wrap')) document.querySelectorAll('.ac-drop').forEach(d=>d.classList.remove('open'));
-});
-
-/* ── SEARCH ── */
-async function doSearch(){
-  const o=document.getElementById('i-orig').value.trim().toUpperCase();
-  const d=document.getElementById('i-dest').value.trim().toUpperCase();
-  const dt=document.getElementById('i-date').value;
-  if(!o||!d){showToast('Preencha origem e destino',false);return;}
-  showToast('Buscando...');
+// ── CONFIGURAÇÕES ─────────────────────────────────────────────────────────────
+async function loadConfig(){
   try{
-    const r=await fetch('/api/buscar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({origem:o,destino:d,data:dt})});
-    if(r.ok){const j=await r.json();showToast(`Preco: ${BRL(j.preco||0)}`);loadAll();}
-    else showToast('Busca nao disponivel nesta versao',false);
-  }catch{showToast('Busca nao disponivel nesta versao',false);}
-}
-async function verifyAll(){
-  showToast('Verificando rotas...');
-  try{const r=await fetch('/api/verificar',{method:'POST'});r.ok?showToast('Verificacao concluida'):showToast('Nao disponivel',false);}
-  catch{showToast('Nao disponivel',false);}
-}
+    const [cfg,ch]=await Promise.all([
+      fetch('/api/config').then(r=>r.json()),
+      fetch('/api/config/channels').then(r=>r.json()),
+    ]);
+    cfgData=cfg;
 
-/* ── CONFIG PAGE ── */
-const LS='rv_cfg';
-function lsCfg(){try{return JSON.parse(localStorage.getItem(LS)||'{}')}catch{return{}}}
-function svCfg(k,v){const c=lsCfg();c[k]=v;localStorage.setItem(LS,JSON.stringify(c))}
-
-async function loadCfgPage(){
-  // Load API config
-  try{
-    cfgData=await fetch('/api/config').then(r=>r.json());
-    // Dias
-    const dias=cfgData.dias_antecedencia||[];
-    document.querySelectorAll('#dias-check input').forEach(cb=>{cb.checked=dias.includes(parseInt(cb.value));});
+    // Days
+    const dias=cfg.dias_antecedencia||[];
+    document.querySelectorAll('.day-chip').forEach(c=>{
+      c.classList.toggle('on',dias.includes(parseInt(c.dataset.v)));
+    });
     // Threshold
-    const thr=Math.round((cfgData.threshold_desconto||0.3)*100);
+    const thr=Math.round((cfg.threshold_desconto||0.3)*100);
     document.getElementById('thr-range').value=thr;
     document.getElementById('thr-val').textContent=thr+'%';
-    // Intervalo
-    document.getElementById('int-sel').value=cfgData.intervalo_horas||4;
+    // Interval
+    document.getElementById('int-sel').value=cfg.intervalo_horas||4;
     // Rotas
-    renderCfgRotas(cfgData.rotas||[]);
-  }catch(e){}
-
-  // Load saved channel config from localStorage
-  const c=lsCfg();
-  if(c.tg_on) toggleCh('tg',true);
-  if(c.wa_on) toggleCh('wa',true);
-  if(c.em_on) toggleCh('em',true);
-  if(c.tg_token) document.getElementById('tg-token').value=c.tg_token;
-  if(c.tg_channel) document.getElementById('tg-channel').value=c.tg_channel;
-  if(c.wa_sid) document.getElementById('wa-sid').value=c.wa_sid;
-  if(c.wa_token) document.getElementById('wa-token').value=c.wa_token;
-  if(c.wa_from) document.getElementById('wa-from').value=c.wa_from;
-  if(c.wa_to) document.getElementById('wa-to').value=c.wa_to;
-  if(c.em_sgkey) document.getElementById('em-sgkey').value=c.em_sgkey;
-  if(c.em_from) document.getElementById('em-from').value=c.em_from;
-  if(c.em_to) document.getElementById('em-to').value=c.em_to;
-
-  // Sobrescreve com valores do .env (fonte autoritativa)
-  try{
-    const ch=await fetch('/api/config/channels').then(r=>r.json());
+    renderCfgRotas(cfg.rotas||[]);
+    // Channels from env
     if(ch.telegram){
       if(ch.telegram.token) document.getElementById('tg-token').value=ch.telegram.token;
       if(ch.telegram.channel_id) document.getElementById('tg-channel').value=ch.telegram.channel_id;
-      if(ch.telegram.configured) toggleCh('tg',true);
+      if(ch.telegram.configured) activateChannel('tg');
     }
     if(ch.whatsapp){
       if(ch.whatsapp.sid) document.getElementById('wa-sid').value=ch.whatsapp.sid;
       if(ch.whatsapp.auth_token) document.getElementById('wa-token').value=ch.whatsapp.auth_token;
       if(ch.whatsapp.from_number) document.getElementById('wa-from').value=ch.whatsapp.from_number;
       if(ch.whatsapp.to_number) document.getElementById('wa-to').value=ch.whatsapp.to_number;
-      if(ch.whatsapp.configured) toggleCh('wa',true);
+      if(ch.whatsapp.configured) activateChannel('wa');
     }
     if(ch.email){
       if(ch.email.from_addr) document.getElementById('em-from').value=ch.email.from_addr;
-      if(ch.email.configured) toggleCh('em',true);
+      if(ch.email.configured) activateChannel('em');
     }
-  }catch(e){}
+  }catch(e){console.error(e);}
+}
+
+function activateChannel(ch){
+  document.getElementById('ch-'+ch).classList.add('active');
+  const st=document.getElementById('ch-'+ch+'-status');
+  st.className='ch-status on';st.innerHTML='<span>●</span> Ativo';
+  document.getElementById('cfg-'+ch).classList.add('show');
+}
+
+function toggleChannel(ch){
+  const card=document.getElementById('ch-'+ch);
+  const isActive=card.classList.toggle('active');
+  const st=document.getElementById('ch-'+ch+'-status');
+  const cfg=document.getElementById('cfg-'+ch);
+  if(isActive){st.className='ch-status on';st.innerHTML='<span>●</span> Ativo';cfg.classList.add('show');}
+  else{st.className='ch-status off';st.innerHTML='<span>○</span> Inativo';cfg.classList.remove('show');}
 }
 
 function renderCfgRotas(rotas){
-  const el=document.getElementById('cfg-rotas');
-  if(!rotas.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted)">Nenhuma rota cadastrada</div>';return;}
-  el.innerHTML=rotas.map((r,i)=>`<div class="rota-item"><span class="rota-name"><span class="iata">${r.origem}</span><span class="arr">→</span><span class="iata">${r.destino}</span></span><button class="db" onclick="removeRota(${i})">✕ Remover</button></div>`).join('');
+  const el=document.getElementById('route-list');
+  if(!rotas.length){el.innerHTML='<div class="empty">Nenhuma rota cadastrada</div>';return;}
+  el.innerHTML=rotas.map((r,i)=>`
+    <div class="route-item">
+      <div class="route-lbl">${r.origem} <span style="color:var(--muted)">→</span> ${r.destino}</div>
+      <button class="btn-icon" onclick="removeRota(${i})">🗑️</button>
+    </div>`).join('');
 }
 
 async function addRota(){
-  // Aceita tanto "POA" quanto "Porto Alegre / Salgado Filho" — extrai o código IATA do início
-  const rawO=document.getElementById('r-orig').value.trim();
-  const rawD=document.getElementById('r-dest').value.trim();
-  const o=(rawO.match(/^([A-Za-z]{3,4})/)||[,''])[1].toUpperCase();
-  const d=(rawD.match(/^([A-Za-z]{3,4})/)||[,''])[1].toUpperCase();
-  if(o.length<3||d.length<3){showToast('Selecione um aeroporto da lista ou digite o código IATA (ex: POA)',false);return;}
-  if(o===d){showToast('Origem e destino não podem ser iguais',false);return;}
-  try{
-    const r=await fetch('/api/config/rotas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({origem:o,destino:d})});
-    if(r.ok){const cfg=await r.json();renderCfgRotas(cfg.rotas||[]);document.getElementById('r-orig').value='';document.getElementById('r-dest').value='';showToast(`✅ Rota ${o} → ${d} adicionada`);}
-    else{const e=await r.json();showToast(e.detail||'Erro ao adicionar',false);}
-  }catch(e){showToast('Erro ao adicionar',false);}
+  const o=document.getElementById('r-origem').value.trim().toUpperCase();
+  const d=document.getElementById('r-destino').value.trim().toUpperCase();
+  if(o.length<3||d.length<3){toast('Insira códigos IATA válidos (3 letras)',false);return;}
+  const r=await fetch('/api/config/rotas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({origem:o,destino:d})});
+  if(r.ok){const c=await r.json();renderCfgRotas(c.rotas||[]);document.getElementById('r-origem').value='';document.getElementById('r-destino').value='';toast('Rota '+o+'→'+d+' adicionada!');}
+  else{const e=await r.json();toast(e.detail||'Erro',false);}
 }
 
-async function removeRota(idx){
-  try{
-    const r=await fetch(`/api/config/rotas/${idx}`,{method:'DELETE'});
-    if(r.ok){const cfg=await r.json();renderCfgRotas(cfg.rotas||[]);showToast('Rota removida');}
-    else showToast('Erro ao remover',false);
-  }catch{showToast('Erro ao remover',false);}
+async function removeRota(i){
+  const r=await fetch('/api/config/rotas/'+i,{method:'DELETE'});
+  if(r.ok){const c=await r.json();renderCfgRotas(c.rotas||[]);toast('Rota removida');}
 }
 
-async function saveParams(){
-  const dias=Array.from(document.querySelectorAll('#dias-check input:checked')).map(cb=>parseInt(cb.value)).sort((a,b)=>a-b);
-  if(!dias.length){showToast('Selecione ao menos um período',false);return;}
-  try{
-    const r=await fetch('/api/config/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dias_antecedencia:dias,threshold_desconto:parseInt(document.getElementById('thr-range').value)/100,intervalo_horas:parseInt(document.getElementById('int-sel').value)})});
-    if(r.ok) showToast('✅ Parâmetros salvos com sucesso');
-    else showToast('Erro ao salvar',false);
-  }catch{showToast('Erro ao salvar',false);}
+function toggleDay(el){el.classList.toggle('on');}
+
+async function saveSettings(){
+  const dias=Array.from(document.querySelectorAll('.day-chip.on')).map(c=>parseInt(c.dataset.v)).sort((a,b)=>a-b);
+  if(!dias.length){toast('Selecione ao menos um período',false);return;}
+  const r=await fetch('/api/config/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    dias_antecedencia:dias,
+    threshold_desconto:parseInt(document.getElementById('thr-range').value)/100,
+    intervalo_horas:parseInt(document.getElementById('int-sel').value),
+  })});
+  if(r.ok) toast('✅ Configurações salvas! Reinicie o servidor para aplicar.');
+  else toast('Erro ao salvar',false);
 }
 
-/* ── CHANNEL TOGGLES ── */
-function toggleCh(ch,force){
-  const el=document.getElementById('cc-'+ch);
-  const chk=document.getElementById('chk-'+ch);
-  const cfg=document.getElementById('cfg-'+ch);
-  const on=force!==undefined?force:!el.classList.contains('active');
-  el.classList.toggle('active',on);
-  chk.textContent=on?'✓':'';
-  cfg.style.display=on?'block':'none';
-  svCfg(ch+'_on',on);
-}
-
-function toggleEmailProv(){
-  const smtp=document.getElementById('em-prov').value==='smtp';
-  document.getElementById('sg-field').style.display=smtp?'none':'block';
-  ['smtp-host-f','smtp-port-f','smtp-user-f','smtp-pass-f'].forEach(id=>document.getElementById(id).style.display=smtp?'block':'none');
-}
-
-/* ── CHANNEL SAVE ── */
 function saveTg(){
-  svCfg('tg_token',document.getElementById('tg-token').value);
-  svCfg('tg_channel',document.getElementById('tg-channel').value);
-  showToast('✅ Telegram salvo — configure TELEGRAM_BOT_TOKEN e TELEGRAM_CHANNEL_ID no Railway também');
-}
-function saveWa(){
-  svCfg('wa_sid',document.getElementById('wa-sid').value);
-  svCfg('wa_token',document.getElementById('wa-token').value);
-  svCfg('wa_from',document.getElementById('wa-from').value);
-  svCfg('wa_to',document.getElementById('wa-to').value);
-  showToast('✅ WhatsApp salvo — configure variáveis TWILIO_* no Railway também');
-}
-function saveEmail(){
-  svCfg('em_sgkey',document.getElementById('em-sgkey').value);
-  svCfg('em_from',document.getElementById('em-from').value);
-  svCfg('em_to',document.getElementById('em-to').value);
-  showToast('✅ Email salvo — configure SENDGRID_API_KEY e EMAIL_* no Railway também');
+  toast('✅ Telegram salvo — configure TELEGRAM_BOT_TOKEN e TELEGRAM_CHANNEL_ID no Railway também');
 }
 
-/* ── CHANNEL TEST ── */
 async function testTg(){
   const box=document.getElementById('tg-result');
-  box.style.display='block';box.className='test-box warn';box.textContent='Testando conexão...';
+  box.style.display='block';box.className='test-result warn';box.textContent='Testando conexão...';
   try{
     const r=await fetch('/api/testar-telegram',{method:'POST'});
     const j=await r.json();
     if(r.ok&&j.ok){
-      box.className='test-box ok';box.textContent='✅ '+j.msg;
-      document.getElementById('tg-status').className='sbadge ok';document.getElementById('tg-status').textContent='✅ Conectado';
+      box.className='test-result ok';box.textContent='✅ '+j.msg;
+      const b=document.getElementById('tg-badge');b.className='status-badge ok';b.textContent='✅ Conectado';
     }else{
-      const err=j.detail||j.error||'Falha desconhecida';
-      box.className='test-box err';box.textContent='❌ '+err;
-      document.getElementById('tg-status').className='sbadge err';document.getElementById('tg-status').textContent='❌ Erro';
+      box.className='test-result err';box.textContent='❌ '+(j.detail||'Falha');
+      const b=document.getElementById('tg-badge');b.className='status-badge err';b.textContent='❌ Erro';
     }
-  }catch(e){box.className='test-box err';box.textContent='❌ Erro: '+e.message;}
+  }catch(e){box.className='test-result err';box.textContent='❌ '+e.message;}
 }
+
 async function testAlerta(){
   const box=document.getElementById('tg-result');
-  box.style.display='block';box.className='test-box warn';box.textContent='Enviando alerta simulado...';
+  box.style.display='block';box.className='test-result warn';box.textContent='Enviando alerta simulado...';
   try{
     const r=await fetch('/api/testar-alerta',{method:'POST'});
     const j=await r.json();
-    if(r.ok&&j.ok){
-      box.className='test-box ok';box.textContent='✅ '+j.msg;
-    }else{
-      box.className='test-box err';box.textContent='❌ '+(j.detail||j.error||'Falha desconhecida');
-    }
-  }catch(e){box.className='test-box err';box.textContent='❌ Erro: '+e.message;}
-}
-async function testWa(){
-  const box=document.getElementById('wa-result');
-  box.style.display='block';box.className='test-box warn';box.textContent='Testando...';
-  try{const r=await fetch('/api/testar-whatsapp',{method:'POST'});
-    if(r.ok){box.className='test-box ok';box.textContent='✅ Mensagem de teste enviada no WhatsApp!';}
-    else{box.className='test-box err';box.textContent='❌ Falha — verifique as credenciais Twilio';}}
-  catch{box.className='test-box err';box.textContent='❌ Endpoint /api/testar-whatsapp não disponível nesta versão';}
-}
-async function testEmail(){
-  const box=document.getElementById('em-result');
-  box.style.display='block';box.className='test-box warn';box.textContent='Testando...';
-  try{const r=await fetch('/api/testar-email',{method:'POST'});
-    if(r.ok){box.className='test-box ok';box.textContent='✅ Email de teste enviado com sucesso!';}
-    else{box.className='test-box err';box.textContent='❌ Falha — verifique a API key e emails';}}
-  catch{box.className='test-box err';box.textContent='❌ Endpoint /api/testar-email não disponível nesta versão';}
+    if(r.ok&&j.ok){box.className='test-result ok';box.textContent='✅ '+j.msg;}
+    else{box.className='test-result err';box.textContent='❌ '+(j.detail||'Falha');}
+  }catch(e){box.className='test-result err';box.textContent='❌ '+e.message;}
 }
 
-/* ── SUBSCRIBERS ── */
-async function loadSubs(){
-  try{
-    subs=await fetch('/api/assinantes').then(r=>r.json());
-    const ativos=subs.filter(s=>s.ativo).length;
-    document.getElementById('m-ativos').textContent=ativos;
-    document.getElementById('m-total').textContent=subs.length;
-    renderSubs();
-  }catch(e){}
+// ── ASSINANTES ────────────────────────────────────────────────────────────────
+async function loadAssinantes(){
+  const r=await fetch('/api/assinantes');
+  assinantesData=await r.json();
+  renderAssinantes();
 }
 
-function renderSubs(){
-  const tbody=document.getElementById('sub-body');
-  let list=subs;
-  if(filt==='ativo')list=list.filter(s=>s.ativo);
-  if(filt==='pausado')list=list.filter(s=>!s.ativo);
-  if(q)list=list.filter(s=>(s.nome+s.contato).toLowerCase().includes(q));
-  if(!list.length){tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--muted)">${subs.length?'Nenhum resultado':'Nenhum assinante cadastrado'}</td></tr>`;return;}
-  tbody.innerHTML=list.map(s=>`<tr>
-    <td><div style="font-weight:600;font-size:12px;color:var(--text)">${s.nome}</div><div style="font-size:10px;color:var(--muted)">${s.contato}</div></td>
-    <td><span class="cp ${s.canal}">${s.canal}</span></td>
-    <td style="color:var(--text2)">—</td>
-    <td style="color:var(--muted);font-size:11px">${ago(s.criado_em)}</td>
-    <td><button class="st-btn ${s.ativo?'':'off'}" onclick="tog(${s.id})">${s.ativo?'✓ Ativo':'⏸ Pausado'}</button></td>
-    <td style="display:flex;gap:5px">
-      <button class="ab" onclick="tog(${s.id})">Pausar</button>
-      <button class="db" onclick="delSub(${s.id})">✕</button>
-    </td>
-  </tr>`).join('');
+function filterA(f,el){
+  filterStatus=f;
+  document.querySelectorAll('.fpill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  renderAssinantes();
 }
 
-const HINTS={telegram:'Chat ID numérico (-1001234...) ou @nome_do_canal',whatsapp:'Número com DDI: +5511999998888',email:'Endereço: usuario@dominio.com'};
-const PLCH={telegram:'@canal_telegram ou -1001234567890',whatsapp:'+5511999998888',email:'usuario@dominio.com'};
-function updateHint(){const c=document.getElementById('a-canal').value;document.getElementById('a-hint').textContent=HINTS[c]||'';document.getElementById('a-contato').placeholder=PLCH[c]||'';}
-function setF(f,el){filt=f;document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('on'));el.classList.add('on');renderSubs();}
-function filterSubs(){q=document.getElementById('sub-q').value.toLowerCase();renderSubs();}
+function renderAssinantes(){
+  const q=(document.getElementById('a-search').value||'').toLowerCase();
+  let list=assinantesData.filter(a=>{
+    if(filterStatus==='ativo'&&!a.ativo) return false;
+    if(filterStatus==='pausado'&&a.ativo) return false;
+    if(q&&!a.nome.toLowerCase().includes(q)&&!a.contato.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const ativos=assinantesData.filter(a=>a.ativo).length;
+  document.getElementById('a-count').innerHTML=`<strong>${ativos} ativos</strong> · ${assinantesData.length} total`;
+  const tbody=document.getElementById('a-tbody');
+  if(!list.length){tbody.innerHTML='<tr><td colspan="6" class="empty">Nenhum assinante encontrado</td></tr>';return;}
+  tbody.innerHTML=list.map(a=>`
+    <tr>
+      <td><div style="font-weight:600;font-size:12px">${a.nome}</div><div class="td-sub">${a.contato}</div></td>
+      <td><span class="canal-badge ${a.canal}">${a.canal.charAt(0).toUpperCase()+a.canal.slice(1)}</span></td>
+      <td style="color:var(--text2)">—</td>
+      <td style="color:var(--text2)">${fmtDate(a.criado_em)}</td>
+      <td><span class="status-pill ${a.ativo?'ativo':'pausado'}">${a.ativo?'Ativo':'Pausado'}</span></td>
+      <td>
+        <div class="action-btns">
+          <button class="act-btn" title="${a.ativo?'Pausar':'Ativar'}" onclick="toggleA(${a.id})">${a.ativo?'⏸':'▶'}</button>
+          <button class="act-btn del" title="Remover" onclick="removeA(${a.id})">✕</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
 
-async function addSub(){
+async function addAssinante(){
   const nome=document.getElementById('a-nome').value.trim();
   const canal=document.getElementById('a-canal').value;
   const contato=document.getElementById('a-contato').value.trim();
-  if(!nome||!contato){showToast('Preencha nome e contato',false);return;}
-  try{
-    const r=await fetch('/api/assinantes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome,canal,contato})});
-    if(r.ok){document.getElementById('a-nome').value='';document.getElementById('a-contato').value='';loadSubs();showToast(`✅ ${nome} adicionado`);}
-    else{const e=await r.json();showToast(e.detail||'Erro',false);}
-  }catch{showToast('Erro ao adicionar',false);}
+  if(!nome||!contato){toast('Preencha nome e contato',false);return;}
+  const r=await fetch('/api/assinantes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome,canal,contato})});
+  if(r.ok){document.getElementById('a-nome').value='';document.getElementById('a-contato').value='';await loadAssinantes();toast('✅ '+nome+' adicionado!');}
+  else{const e=await r.json();toast(e.detail||'Erro',false);}
 }
 
-async function tog(id){const r=await fetch(`/api/assinantes/${id}/toggle`,{method:'PATCH'});if(r.ok){loadSubs();showToast('Status atualizado');}else showToast('Erro',false);}
-async function delSub(id){if(!confirm('Remover este assinante?'))return;const r=await fetch(`/api/assinantes/${id}`,{method:'DELETE'});if(r.ok){loadSubs();showToast('Removido');}else showToast('Erro',false);}
+async function toggleA(id){
+  const r=await fetch('/api/assinantes/'+id+'/toggle',{method:'PATCH'});
+  if(r.ok){await loadAssinantes();toast('Status atualizado');}
+}
 
-/* ── INIT ── */
-document.getElementById('i-date').value=new Date(Date.now()+90*86400000).toISOString().slice(0,10);
-loadAll();
-loadAirports();
-setInterval(loadAll,60000);
+async function removeA(id){
+  if(!confirm('Remover este assinante?')) return;
+  const r=await fetch('/api/assinantes/'+id,{method:'DELETE'});
+  if(r.ok){await loadAssinantes();toast('Assinante removido');}
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+const today=new Date().toISOString().split('T')[0];
+document.getElementById('s-data').value=today;
+loadDashboard();
+setInterval(loadDashboard,30000);
 </script>
 </body>
 </html>
