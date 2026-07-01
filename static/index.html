@@ -407,7 +407,7 @@ tbody tr:last-child td{border-bottom:none}
         </div>
         <table>
           <thead>
-            <tr><th>Rota</th><th>Preço</th><th>Companhia</th><th>Paradas</th><th>Data do Voo</th></tr>
+            <tr><th>Rota</th><th>Preço</th><th>Companhia</th><th>Paradas</th><th>Data do Voo</th><th></th></tr>
           </thead>
           <tbody id="busca-tbody"></tbody>
         </table>
@@ -892,12 +892,14 @@ function _renderBuscaResults(j, ori, dst, dt){
     tbody.innerHTML=sorted.map(v=>{
       const isBest=v.preco===minP;
       const paradas=v.paradas===0?'<span class="tdisc green">Direto</span>':`<span style="color:var(--text2)">${v.paradas} escala(s)</span>`;
+      const link=`https://www.google.com/travel/flights?q=voos+de+${v.origem}+para+${v.destino}+em+${v.data_voo||dt}&hl=pt-BR&curr=BRL`;
       return`<tr>
         <td><div class="td-rt">${v.origem}<span class="sep">→</span>${v.destino}</div></td>
         <td class="${isBest?'td-deal':'td-normal'}" style="font-weight:700">${R(v.preco)}${isBest?' <span style="font-size:10px;color:var(--green)">● menor</span>':''}</td>
         <td class="td-co">${v.companhia||'—'}</td>
         <td>${paradas}</td>
         <td class="td-ago">${v.data_voo||'—'}</td>
+        <td><a href="${link}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;background:var(--purple);color:#fff;padding:5px 12px;border-radius:7px;font-size:11px;font-weight:600;text-decoration:none;transition:.15s;white-space:nowrap" onmouseover="this.style.background='var(--purple2)'" onmouseout="this.style.background='var(--purple)'">🛒 Ver passagem</a></td>
       </tr>`;
     }).join('');
   }
